@@ -45,8 +45,8 @@ app.post('/registrarExterno', async (req, res) =>{
 
 app.post('/login', async (req, res) => {
   try {
-    const email = req.body.email;
-    const password = req.body.password;
+    const email = req.body.isEmail;
+    const password = req.body.isPassword;
     const user = await Usuarios.findOne({ email : email });
     if (user) {
       const isWorking = await bcryptjs.compare(password, user.password);
