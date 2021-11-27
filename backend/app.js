@@ -17,11 +17,12 @@ app.use(express.urlencoded({extended : false}))
 app.use(cookieParser())
 
 app.get('/', (req, res) =>{
-  res.send("Helllo world");
+  res.send("backend its working");
 });
 
 app.post('/registrarExterno', async (req, res) =>{
   try {
+
     const nombres = req.body.nombres;
     const apellidos = req.body.apellidos;
     const email = req.body.email;
