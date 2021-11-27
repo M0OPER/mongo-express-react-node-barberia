@@ -93,4 +93,5 @@ const General = () => {
     </div>
   )
 }
+
 export default General;

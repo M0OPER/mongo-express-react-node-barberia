@@ -25,7 +25,8 @@ export default function Navbar() {
               </li>
               <li className="nav-item">
               <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/panel">PANEL</NavLink>
-                <button type="button" class="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
+              <button type="button" class="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
+              <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/logout">CERRAR SESION</NavLink>
               </li>
             </ul>
           </div>

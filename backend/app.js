@@ -20,29 +20,6 @@ app.get('/', (req, res) =>{
   res.send("backend its working");
 });
 
-app.post('/registrarExterno', async (req, res) =>{
-  try {
-
-    const nombres = req.body.nombres;
-    const apellidos = req.body.apellidos;
-    const email = req.body.email;
-    const password = req.body.password;
-
-    const createUser = new Usuarios({
-      nombres  : nombres,
-      apellidos: apellidos,
-      email    : email,
-      password : password
-    })
-
-    const created = await createUser.save();
-    console.log(created)
-    res.status(200).send("HECHO");
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
-
 app.post('/login', async (req, res) => {
   try {
     const email = req.body.isEmail;
@@ -66,6 +43,34 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     res.status(400).send(error);
   }
+});
+
+app.post('/registrarExterno', async (req, res) =>{
+  try {
+
+    const nombres = req.body.nombres;
+    const apellidos = req.body.apellidos;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const createUser = new Usuarios({
+      nombres  : nombres,
+      apellidos: apellidos,
+      email    : email,
+      password : password
+    })
+
+    const created = await createUser.save();
+    console.log(created)
+    res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.get('/logout', async (req, res) => {
+  res.clearCookie("jwt", {path : '/'})
+  res.status(200).send("Sesion cerrada con exito");
 });
 
 app.listen(port, ()=>{
