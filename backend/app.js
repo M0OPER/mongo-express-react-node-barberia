@@ -11,6 +11,7 @@ require('./db/conn')
 const port = process.env.PORT;
 
 const Usuarios = require('./models/usuariosTabla')
+const authenticate = require('./middleware/authenticate')
 
 app.use(express.json());
 app.use(express.urlencoded({extended : false}))
@@ -43,6 +44,10 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     res.status(400).send(error);
   }
+});
+
+app.get('/auth', authenticate, (req, res) => {
+  
 });
 
 app.post('/registrarExterno', async (req, res) =>{
