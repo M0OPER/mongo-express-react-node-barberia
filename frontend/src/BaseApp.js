@@ -8,6 +8,7 @@ const init = () => {
 };
 
 export const BaseApp = () => {
+  
   const [user, dispatch] = useReducer(authReducer, {}, init);
 
   useEffect(() => {
