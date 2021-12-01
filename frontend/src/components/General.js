@@ -8,10 +8,6 @@ const General = () => {
 
   const { dispatch } = useContext( AuthContext );
 
-  const navigate = useNavigate();
-
-  //const { login } = useAuth();
-
   const [user, setUser] = useState({
     isEmail    : "",
     isPassword : ""
@@ -25,17 +21,6 @@ const General = () => {
   }
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-
-        dispatch({
-            type: types.login,
-            payload: {
-                name: 'Edwin'
-            }
-        });
-  }
-
-  const handleSubmi = async (event) => {
     event.preventDefault();
     const { isEmail, isPassword} = user;
 
@@ -54,6 +39,12 @@ const General = () => {
       } else if (res.status === 404){
         window.alert("Pagina no encontrada");
       }else {
+        dispatch({
+          type: types.login,
+          payload: {
+              name: 'Edwin'
+          }
+      });
         window.location.reload();
       }
     } catch (error) {

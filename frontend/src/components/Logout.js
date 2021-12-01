@@ -7,13 +7,6 @@ const Logout = () => {
 
   const { dispatch } = useContext( AuthContext );
 
-  dispatch({
-    type: types.logout,
-    payload: {
-        name: ''
-    }
-});
-
   const navigate = useNavigate();
 
   const logout = async() => {
@@ -32,7 +25,12 @@ const Logout = () => {
         window.alert("error");
       }
       else{
-        window.alert("Sesion cerrada con exito")
+        dispatch({
+          type: types.logout,
+          payload: {
+              name: ''
+          }
+      });
         navigate('/');
         window.location.reload();
       }
