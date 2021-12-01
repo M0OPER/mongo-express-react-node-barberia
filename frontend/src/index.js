@@ -5,12 +5,11 @@ import reportWebVitals from './reportWebVitals';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min.js';
 import '../node_modules/font-awesome/css/font-awesome.min.css'
-import { BrowserRouter } from 'react-router-dom'
+import { HeroesApp } from './HeroesApp';
+
 
 ReactDOM.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
+  <HeroesApp />,
   document.getElementById('root')
 );
 

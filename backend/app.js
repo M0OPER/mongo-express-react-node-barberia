@@ -35,7 +35,7 @@ app.post('/login', async (req, res) => {
           httpOnly : true
         })
         res.status(200).send("LOGEADO");
-      }else{
+      }else{  
         res.status(400).send("USUARIO O CONTRASEÑA INCORRECTA");
       }
     }else{

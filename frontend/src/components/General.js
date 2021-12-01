@@ -1,9 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../auth/AuthContext';
+import useAuth from '../auth/useAuth'
+import { types } from '../types/types';
 
 const General = () => {
 
+  const { dispatch } = useContext( AuthContext );
+
   const navigate = useNavigate();
+
+  //const { login } = useAuth();
 
   const [user, setUser] = useState({
     isEmail    : "",
@@ -18,6 +25,17 @@ const General = () => {
   }
 
   const handleSubmit = async (event) => {
+    event.preventDefault();
+
+        dispatch({
+            type: types.login,
+            payload: {
+                name: 'Edwin'
+            }
+        });
+  }
+
+  const handleSubmi = async (event) => {
     event.preventDefault();
     const { isEmail, isPassword} = user;
 
@@ -36,8 +54,7 @@ const General = () => {
       } else if (res.status === 404){
         window.alert("Pagina no encontrada");
       }else {
-        window.alert("Ingreso al sistema");
-        navigate('/panel')
+        window.location.reload();
       }
     } catch (error) {
       console.error(error);

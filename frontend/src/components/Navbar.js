@@ -1,7 +1,10 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
+import React, { useContext } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../auth/AuthContext';
+import { types } from '../types/types';
 
-export default function Navbar() {
+export const Navbar = () => {
+    
   return (
     <div>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow">
@@ -25,7 +28,7 @@ export default function Navbar() {
               </li>
               <li className="nav-item">
               <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/panel">PANEL</NavLink>
-              <button type="button" class="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
+              <button type="button" className="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
               <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/logout">CERRAR SESION</NavLink>
               </li>
             </ul>
@@ -35,3 +38,4 @@ export default function Navbar() {
     </div>
   )
 }
+

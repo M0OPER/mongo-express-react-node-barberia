@@ -1,7 +1,18 @@
-import { useEffect } from 'react'
+import React, { useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../auth/AuthContext';
+import { types } from '../types/types';
 
 const Logout = () => {
+
+  const { dispatch } = useContext( AuthContext );
+
+  dispatch({
+    type: types.logout,
+    payload: {
+        name: ''
+    }
+});
 
   const navigate = useNavigate();
 

@@ -1,6 +1,3 @@
-import React from 'react'
-import ContactoPage from './ContactoPage'
-import ServiciosPage from './ServiciosPage'
 
 export default function Carousel() {
   return (
@@ -43,8 +40,6 @@ export default function Carousel() {
           <span className="visually-hidden">Next</span>
         </button>
       </div>
-      <ServiciosPage />
-      <ContactoPage />
     </div>
   )
 }
