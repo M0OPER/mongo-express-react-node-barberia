@@ -4,7 +4,20 @@ import { AuthContext } from '../auth/AuthContext';
 import { types } from '../types/types';
 
 export const Navbar = () => {
-    
+
+  const { user } = useContext(AuthContext )
+
+  let panel = null
+  let iniciarSesion = null
+  let cerrarSesion = null
+  
+  if (!user.logged) {
+    iniciarSesion = <button type="button" className="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
+  }else{
+    panel = <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/panel">PANEL</NavLink>
+    cerrarSesion = <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/logout">CERRAR SESION</NavLink>
+  }
+
   return (
     <div>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow">
@@ -21,15 +34,15 @@ export const Navbar = () => {
                 <NavLink className="nav-link" to="/">INICIO</NavLink>
               </li>
               <li className="nav-item">
-                <NavLink className="nav-link" to="/panel">PANEL</NavLink>
+                <NavLink className="nav-link" to="/servicios">SERVICIOS</NavLink>
               </li>
               <li className="nav-item">
                 <NavLink className="nav-link" to="/contacto">CONTACTO</NavLink>
               </li>
               <li className="nav-item">
-              <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/panel">PANEL</NavLink>
-              <button type="button" className="btn btn-outline-info ms-auto px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalSesion">INICIAR SESION</button>
-              <NavLink className="btn btn-outline-info ms-auto px-4 rounded-pill" to="/logout">CERRAR SESION</NavLink>
+              {panel}
+              {iniciarSesion}
+              {cerrarSesion}
               </li>
             </ul>
           </div>

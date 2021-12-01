@@ -7,7 +7,7 @@ const init = () => {
   return JSON.parse(localStorage.getItem("user")) || { logged: false };
 };
 
-export const HeroesApp = () => {
+export const BaseApp = () => {
   const [user, dispatch] = useReducer(authReducer, {}, init);
 
   useEffect(() => {

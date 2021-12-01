@@ -1,7 +1,7 @@
 import React from 'react'
-import { Navbar } from './Navbar'
-import Footer  from './Footer'
-import General  from './General'
+import { Navbar } from '../components/Navbar'
+import Footer  from '../components/Footer'
+import General  from '../components/General'
 
 export default function ContactoPage() {
   return (
