@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -11,10 +11,22 @@ const usuariosTabla = new mongoose.Schema({
     type: String,
     required: true,
   },
+  numero_documento: {
+    type: Number,
+    required: true,
+  },
+  telefono: {
+    type: Number,
+    required: false,
+  },
+  direccion: {
+    type: String,
+    required: false,
+  },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
@@ -25,29 +37,29 @@ const usuariosTabla = new mongoose.Schema({
       token: {
         type: String,
         required: true,
-      }
-    }
-  ]
-})
+      },
+    },
+  ],
+});
 
-usuariosTabla.pre('save', async function (next) {
-  if (this.isModified('password')) {
-    this.password = bcryptjs.hashSync(this.password, 10)
+usuariosTabla.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = bcryptjs.hashSync(this.password, 10);
   }
   next();
-})
+});
 
 usuariosTabla.methods.generateToken = async function () {
   try {
-    let generatedToken = jwt.sign({ _id: this._id }, process.env.SECRET_KEY)
-    this.tokens = this.tokens.concat({ token: generatedToken })
+    let generatedToken = jwt.sign({ _id: this._id }, process.env.SECRET_KEY);
+    this.tokens = this.tokens.concat({ token: generatedToken });
     await this.save();
     return generatedToken;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
-const Usuarios = new mongoose.model("usuarios", usuariosTabla)
+const Usuarios = new mongoose.model("usuarios", usuariosTabla);
 
 module.exports = Usuarios;

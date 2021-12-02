@@ -4,6 +4,7 @@ import { AuthContext } from "../auth/AuthContext";
 import { types } from "../types/types";
 
 export const Navbar = () => {
+
   const { user } = useContext(AuthContext);
 
   let panel = null;
@@ -44,7 +45,7 @@ export const Navbar = () => {
         id="welcome"
         type="button"
         className="btn btn-secondary btn-sm"
-      ></button>
+      >{user["name"] + " - " + user["role"]}</button>
     );
   }
 

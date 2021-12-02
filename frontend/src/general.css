@@ -2,4 +2,7 @@
     z-index : 10;
     position: absolute;
     right   : 0%;
+    text-transform: uppercase;
+    background-color: #212529;
+    border-radius: 7px;
   }

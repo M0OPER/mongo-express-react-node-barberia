@@ -5,7 +5,7 @@ import { types } from "../types/types";
 const General = () => {
 
   const { dispatch } = useContext(AuthContext);
-
+ 
   const [user, setUser] = useState({
     isEmail: "",
     isPassword: "",
@@ -39,8 +39,8 @@ const General = () => {
         dispatch({
           type: types.login,
           payload: {
-            name: "Edwin",
-            role: "admin"
+            name: "Manuel Bonilla Montes",
+            role: "externo"
           },
         });
         window.location.reload();
