@@ -65,7 +65,6 @@ export const AppRouter = () => {
             </PrivateRoute>
           }
         />
-        
       </Routes>
     </BrowserRouter>
   );

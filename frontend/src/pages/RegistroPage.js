@@ -27,7 +27,16 @@ const RegistroPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const { nombres, apellidos, numero_documento, telefono, direccion, email, password1, password2 } = user;
+    const {
+      nombres,
+      apellidos,
+      numero_documento,
+      telefono,
+      direccion,
+      email,
+      password1,
+      password2,
+    } = user;
     if (
       nombres === "" ||
       apellidos === "" ||
@@ -41,7 +50,7 @@ const RegistroPage = () => {
         alert("Las contraseñas no coinciden");
       } else {
         try {
-          const res = await fetch("/registrarExterno", {
+          const res = await fetch("/registrarUsuario", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -61,6 +70,30 @@ const RegistroPage = () => {
           } else if (res.status === 404) {
             window.alert("Pagina no encontrada");
           } else {
+            try {
+              const res = await fetch("/registrarExterno", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  nombres,
+                  apellidos,
+                  numero_documento,
+                  telefono,
+                  direccion,
+                  email,
+                  password2,
+                }),
+              });
+              if (res.status === 400 || !res) {
+                window.alert("Usuario en uso");
+              } else if (res.status === 404) {
+                window.alert("Pagina no encontrada");
+              } else {}
+            } catch (error) {
+              window.alert("Error del servidor");
+            }
             window.alert("Registrado con exito");
             navigate("/inicio");
           }

@@ -3,9 +3,8 @@ import { AuthContext } from "../auth/AuthContext";
 import { types } from "../types/types";
 
 const General = () => {
-
   const { dispatch } = useContext(AuthContext);
- 
+
   const [user, setUser] = useState({
     isEmail: "",
     isPassword: "",
@@ -35,15 +34,22 @@ const General = () => {
         window.alert("Usuario o contraseña incorrecta");
       } else if (res.status === 404) {
         window.alert("Pagina no encontrada");
+      } else if (res.status === 200) {
+        try {
+          //HACER SUB CONSULTA
+          dispatch({
+            type: types.login,
+            payload: {
+              name: "Manuel Bonilla Montes",
+              role: "externo",
+            },
+          });
+          window.location.reload();
+        } catch (error) {
+          window.alert("Error dentro del servidor");
+        }
       } else {
-        dispatch({
-          type: types.login,
-          payload: {
-            name: "Manuel Bonilla Montes",
-            role: "externo"
-          },
-        });
-        window.location.reload();
+        window.alert("Error dentro del servidor");
       }
     } catch (error) {
       console.error(error);
