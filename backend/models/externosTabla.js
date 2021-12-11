@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const externosTabla = new mongoose.Schema({
   ext_usuario_id: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Types.ObjectId,
     required: true,
   },
   ext_servicio_id: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Types.ObjectId,
     required: false,
   },
 });

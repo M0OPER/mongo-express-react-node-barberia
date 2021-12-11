@@ -11,6 +11,7 @@ require("./db/conn");
 const port = process.env.PORT;
 
 const Usuarios = require("./models/usuariosTabla");
+const UsuarioExterno = require("./models/externosTabla");
 const authenticate = require("./middleware/authenticate");
 
 const cargarUsuario = async () => {
@@ -82,35 +83,17 @@ app.post("/registrarUsuario", async (req, res) => {
     });
 
     const created = await createUser.save();
-    console.log(created);
-    if (isEmptyObject(created)) {
-      console.log("error");
-    } else {
-      console.log("bien");
-    }
-    if (res.status(200)) {
-      console.log(created["_id"]);
-      res.status(200).send("HECHO");
-    } else {
-      console.log("error");
-    }
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
 
-app.post("/registrarExterno", async (req, res) => {
-  try {
-    const id_usuario = req.body.id_usuario;
+    const id_usuario = created["_id"];
 
-    const createExterno = new Usuarios({
-      nombres: nombres,
-      apellidos: apellidos,
+    const createExterno = new UsuarioExterno({
+      ext_usuario_id: id_usuario
     });
 
-    const created = await externo.save();
-    console.log(created);
-    res.status(200).send("HECHO");
+    const createdExterno = await createExterno.save();
+
+    res.status(200).send();
+    
   } catch (error) {
     res.status(400).send(error);
   }
