@@ -14,6 +14,7 @@ const Usuarios = require("./models/usuariosTabla");
 const Administradores = require("./models/administradoresTabla");
 const Externos = require("./models/externosTabla");
 const authenticate = require("./middleware/authenticate");
+const Citas = require("./models/citasTabla");
 
 const cargarUsuario = async () => {
   const resultado = await Usuarios.agregate([
@@ -118,6 +119,19 @@ app.post("/registrarUsuario", async (req, res) => {
 app.get("/logout", async (req, res) => {
   res.clearCookie("jwt", { path: "/" });
   res.status(200).send("Sesion cerrada con exito");
+});
+
+app.post("/cargarCitas", async (req, res) => {
+  try {
+    const datos = await Citas.find();
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
 });
 
 app.listen(port, () => {
