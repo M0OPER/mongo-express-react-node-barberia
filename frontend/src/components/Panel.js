@@ -7,7 +7,7 @@ import PanelAdministradorPage from "../pages/panel/PanelAdministradorPage";
 import PanelExternoPage from "../pages/panel/PanelExternoPage";
 
 
-export default function PanelPage() {
+export default function Panel() {
 
   const { user } = useContext(AuthContext);
 
