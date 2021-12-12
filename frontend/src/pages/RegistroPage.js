@@ -67,33 +67,7 @@ const RegistroPage = () => {
           });
           if (res.status === 400 || !res) {
             window.alert("Usuario en uso");
-          } else if (res.status === 404) {
-            window.alert("Pagina no encontrada");
           } else {
-            try {
-              const res = await fetch("/registrarExterno", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  nombres,
-                  apellidos,
-                  numero_documento,
-                  telefono,
-                  direccion,
-                  email,
-                  password2,
-                }),
-              });
-              if (res.status === 400 || !res) {
-                window.alert("Usuario en uso");
-              } else if (res.status === 404) {
-                window.alert("Pagina no encontrada");
-              } else {}
-            } catch (error) {
-              window.alert("Error del servidor");
-            }
             window.alert("Registrado con exito");
             navigate("/inicio");
           }

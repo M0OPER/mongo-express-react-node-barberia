@@ -1,16 +1,29 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Navbar } from "./Navbar";
 import Footer from "./Footer";
 import General from "./General";
+import { AuthContext } from "../auth/AuthContext";
+import PanelAdministradorPage from "../pages/panel/PanelAdministradorPage";
+import PanelExternoPage from "../pages/panel/PanelExternoPage";
+
 
 export default function PanelPage() {
+
+  const { user } = useContext(AuthContext);
+
+  var panel = null;
+
+  if (user["role"] === "administrador") {
+    panel = <PanelAdministradorPage />
+  }else if (user["role"] === "externo") {
+    panel = <PanelExternoPage />
+  }
+
   return (
     <>
       <General />
       <Navbar />
-      <div>
-        <h1>PAGINA DE PANEL</h1>
-      </div>
+      {panel}
       <Footer />
     </>
   );

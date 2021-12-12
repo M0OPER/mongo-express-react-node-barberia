@@ -11,7 +11,8 @@ require("./db/conn");
 const port = process.env.PORT;
 
 const Usuarios = require("./models/usuariosTabla");
-const UsuarioExterno = require("./models/externosTabla");
+const Administradores = require("./models/administradoresTabla");
+const Externos = require("./models/externosTabla");
 const authenticate = require("./middleware/authenticate");
 
 const cargarUsuario = async () => {
@@ -42,12 +43,28 @@ app.post("/login", async (req, res) => {
     if (user) {
       const isWorking = await bcryptjs.compare(password, user.password);
       if (isWorking) {
+        let datos = null;
+        if (user["role"] === "administrador") {
+          datos = await Administradores.findOne({
+            adm_usuario_id: user["_id"],
+          });
+        } else if (user["role"] === "interno") {
+        } else if (user["role"] === "empleado") {
+        } else if (user["role"] === "externo") {
+          datos = await Externos.findOne({
+            ext_usuario_id: user["_id"],
+          });
+        }
         const token = await user.generateToken();
         res.cookie("jwt", token, {
           expires: new Date(Date.now() + 86400000),
           httpOnly: true,
         });
-        res.status(200).send("LOGEADO");
+        res.status(200).json({
+          user_id: datos["_id"],
+          nombres: user["nombres"] + " " + user["apellidos"],
+          role: user["role"],
+        });
       } else {
         res.status(400).send("USUARIO O CONTRASEÑA INCORRECTA");
       }
@@ -86,14 +103,13 @@ app.post("/registrarUsuario", async (req, res) => {
 
     const id_usuario = created["_id"];
 
-    const createExterno = new UsuarioExterno({
-      ext_usuario_id: id_usuario
+    const createExterno = new Externos({
+      ext_usuario_id: id_usuario,
     });
 
     const createdExterno = await createExterno.save();
 
-    res.status(200).send();
-    
+    res.status(200).send("HECHO");
   } catch (error) {
     res.status(400).send(error);
   }

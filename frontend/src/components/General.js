@@ -35,13 +35,15 @@ const General = () => {
       } else if (res.status === 404) {
         window.alert("Pagina no encontrada");
       } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
         try {
-          //HACER SUB CONSULTA
           dispatch({
             type: types.login,
             payload: {
-              name: "Manuel Bonilla Montes",
-              role: "externo",
+              user: response["user_id"],
+              name: response["nombres"],
+              role: response["role"],
             },
           });
           window.location.reload();
