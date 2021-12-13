@@ -3,7 +3,26 @@ import React from "react";
 export default function PanelExternoPage() {
   const btnSolicitarServicio = async (event) => {
     event.preventDefault();
-    
+    try {
+      const res = await fetch("/seleccionarServicios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay citas");
+      } else if (res.status === 404) {
+        window.alert("No hay citas");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const extSolicitarServicio = async (event) => {
@@ -85,7 +104,7 @@ export default function PanelExternoPage() {
         onClick={btnSolicitarServicio}
         id="mdlSolicitarServicio"
         type="button"
-        className="btn btn-info ms-auto px-4 rounded-pill btn-lg"
+        className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
       >
         SOLICITAR SERVICIO
       </button>

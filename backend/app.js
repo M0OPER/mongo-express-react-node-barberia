@@ -10,10 +10,11 @@ dotenv.config({ path: "./config.env" });
 require("./db/conn");
 const port = process.env.PORT;
 
+const authenticate = require("./middleware/authenticate");
 const Usuarios = require("./models/usuariosTabla");
 const Administradores = require("./models/administradoresTabla");
+const Internos = require("./models/internosTabla");
 const Externos = require("./models/externosTabla");
-const authenticate = require("./middleware/authenticate");
 const Citas = require("./models/citasTabla");
 
 const cargarUsuario = async () => {
@@ -79,7 +80,7 @@ app.post("/login", async (req, res) => {
 
 app.get("/auth", authenticate, (req, res) => {});
 
-app.post("/registrarUsuario", async (req, res) => {
+app.post("/registrarExterno", async (req, res) => {
   try {
     const nombres = req.body.nombres;
     const apellidos = req.body.apellidos;
@@ -98,6 +99,7 @@ app.post("/registrarUsuario", async (req, res) => {
       email: email,
       password: password,
       role: "externo",
+      estado: "activo",
     });
 
     const created = await createUser.save();
@@ -109,6 +111,44 @@ app.post("/registrarUsuario", async (req, res) => {
     });
 
     const createdExterno = await createExterno.save();
+
+    res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/registrarInterno", async (req, res) => {
+  try {
+    const nombres = req.body.nombres;
+    const apellidos = req.body.apellidos;
+    const numero_documento = req.body.numero_documento;
+    const telefono = req.body.telefono;
+    const direccion = req.body.direccion;
+    const email = req.body.email;
+    const password = req.body.password2;
+
+    const createUser = new Usuarios({
+      nombres: nombres,
+      apellidos: apellidos,
+      numero_documento: numero_documento,
+      telefono: telefono,
+      direccion: direccion,
+      email: email,
+      password: password,
+      role: "interno",
+      estado: "activo",
+    });
+
+    const created = await createUser.save();
+
+    const id_usuario = created["_id"];
+
+    const createInterno = new Internos({
+      int_usuario_id: id_usuario,
+    });
+
+    const createdExterno = await createInterno.save();
 
     res.status(200).send("HECHO");
   } catch (error) {
@@ -128,6 +168,19 @@ app.post("/cargarCitas", async (req, res) => {
       res.status(200).json(datos);
     } else {
       res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/cargarInternos", async (req, res) => {
+  try {
+    const datos = await Usuarios.find({role: 'interno'}, "nombres apellidos numero_documento role estado");
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay internos");
     }
   } catch (error) {
     res.status(400).send(error);

@@ -50,7 +50,7 @@ const RegistroPage = () => {
         alert("Las contraseñas no coinciden");
       } else {
         try {
-          const res = await fetch("/registrarUsuario", {
+          const res = await fetch("/registrarExterno", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

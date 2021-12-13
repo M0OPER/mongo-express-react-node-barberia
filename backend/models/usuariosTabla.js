@@ -36,6 +36,10 @@ const usuariosTabla = new mongoose.Schema({
     type: String,
     required: true,
   },
+  estado: {
+    type: String,
+    required: true,
+  },
   tokens: [
     {
       token: {
