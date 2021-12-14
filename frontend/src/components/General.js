@@ -36,7 +36,6 @@ const General = () => {
         window.alert("Pagina no encontrada");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
         try {
           dispatch({
             type: types.login,

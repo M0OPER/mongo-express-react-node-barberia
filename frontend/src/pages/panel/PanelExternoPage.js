@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
+import { AuthContext } from "../../auth/AuthContext";
 
 export default function PanelExternoPage() {
+
+  const { user } = useContext(AuthContext);
+
   const btnSolicitarServicio = async (event) => {
     event.preventDefault();
     try {
@@ -29,14 +33,17 @@ export default function PanelExternoPage() {
     event.preventDefault();
   };
 
-  const cargarCitas = async (event) => {
-    event.preventDefault();
+  const cargarCitasExterno = async (event) => {
+    const id_externo = user["user"];
     try {
-      const res = await fetch("/cargarCitas", {
+      const res = await fetch("/cargarCitasExterno", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          id_externo,
+        }),
       });
       if (res.status === 400 || !res) {
         window.alert("No hay citas");
@@ -59,14 +66,14 @@ export default function PanelExternoPage() {
         <nav>
           <div className="nav nav-tabs" id="nav-tab" role="tablist">
             <button
-              onClick={cargarCitas}
+              onClick={cargarCitasExterno}
               className="nav-link active"
-              id="nav-home-tab"
+              id="nav-citas-tab"
               data-bs-toggle="tab"
-              data-bs-target="#nav-home"
+              data-bs-target="#nav-citas"
               type="button"
               role="tab"
-              aria-controls="nav-home"
+              aria-controls="nav-citas"
               aria-selected="true"
             >
               CITAS
@@ -76,27 +83,36 @@ export default function PanelExternoPage() {
         <div className="tab-content" id="nav-tabContent">
           <div
             className="tab-pane fade show active"
-            id="nav-home"
+            id="nav-citas"
             role="tabpanel"
-            aria-labelledby="nav-home-tab"
+            aria-labelledby="nav-citas-tab"
           >
             <hr></hr>
-          </div>
-          <div
-            className="tab-pane fade"
-            id="nav-profile"
-            role="tabpanel"
-            aria-labelledby="nav-profile-tab"
-          >
-            ...
-          </div>
-          <div
-            className="tab-pane fade"
-            id="nav-contact"
-            role="tabpanel"
-            aria-labelledby="nav-contact-tab"
-          >
-            ...
+            <table className="table table-success table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">EMPLEADO</th>
+                  <th scope="col">SERVICIO</th>
+                  <th scope="col">ESTADO</th>
+                  <th scope="col">CANCELAR</th>
+                  <th scope="col">COMENTARIOS</th>
+                  <th scope="col">CALIFICACION</th>
+                </tr>
+              </thead>
+              <tbody id="tblCitas">
+                <tr>
+                  <th scope="row">NO HAY CITAS</th>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+            <hr></hr>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ const express = require("express");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const mongoose = require("mongoose");
 
 const app = express();
 
@@ -14,22 +15,10 @@ const authenticate = require("./middleware/authenticate");
 const Usuarios = require("./models/usuariosTabla");
 const Administradores = require("./models/administradoresTabla");
 const Internos = require("./models/internosTabla");
+const Empleados = require("./models/empleadosTabla");
 const Externos = require("./models/externosTabla");
+const Servicios = require("./models/serviciosTabla");
 const Citas = require("./models/citasTabla");
-
-const cargarUsuario = async () => {
-  const resultado = await Usuarios.agregate([
-    {
-      $lockup: {
-        from: "empleados",
-        localField: "_id",
-        foreignField: "emp_usuario_id",
-        as: "datosUsuarios",
-      },
-    },
-  ]);
-  console.log(resultado);
-};
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -51,6 +40,9 @@ app.post("/login", async (req, res) => {
             adm_usuario_id: user["_id"],
           });
         } else if (user["role"] === "interno") {
+          datos = await Internos.findOne({
+            int_usuario_id: user["_id"],
+          });
         } else if (user["role"] === "empleado") {
         } else if (user["role"] === "externo") {
           datos = await Externos.findOne({
@@ -63,6 +55,7 @@ app.post("/login", async (req, res) => {
           httpOnly: true,
         });
         res.status(200).json({
+          //login_id: user["_id"],
           user_id: datos["_id"],
           nombres: user["nombres"] + " " + user["apellidos"],
           role: user["role"],
@@ -80,39 +73,23 @@ app.post("/login", async (req, res) => {
 
 app.get("/auth", authenticate, (req, res) => {});
 
-app.post("/registrarExterno", async (req, res) => {
+app.get("/logout", async (req, res) => {
+  res.clearCookie("jwt", { path: "/" });
+  res.status(200).send("Sesion cerrada con exito");
+});
+
+//USUARIOS INTERNOS
+app.post("/cargarInternos", async (req, res) => {
   try {
-    const nombres = req.body.nombres;
-    const apellidos = req.body.apellidos;
-    const numero_documento = req.body.numero_documento;
-    const telefono = req.body.telefono;
-    const direccion = req.body.direccion;
-    const email = req.body.email;
-    const password = req.body.password2;
-
-    const createUser = new Usuarios({
-      nombres: nombres,
-      apellidos: apellidos,
-      numero_documento: numero_documento,
-      telefono: telefono,
-      direccion: direccion,
-      email: email,
-      password: password,
-      role: "externo",
-      estado: "activo",
-    });
-
-    const created = await createUser.save();
-
-    const id_usuario = created["_id"];
-
-    const createExterno = new Externos({
-      ext_usuario_id: id_usuario,
-    });
-
-    const createdExterno = await createExterno.save();
-
-    res.status(200).send("HECHO");
+    const datos = await Usuarios.find(
+      { role: "interno" },
+      "nombres apellidos numero_documento role estado"
+    );
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay internos");
+    }
   } catch (error) {
     res.status(400).send(error);
   }
@@ -156,10 +133,141 @@ app.post("/registrarInterno", async (req, res) => {
   }
 });
 
-app.get("/logout", async (req, res) => {
-  res.clearCookie("jwt", { path: "/" });
-  res.status(200).send("Sesion cerrada con exito");
+//EMPLEADOS ---------------------------------------------------
+
+app.post("/cargarEmpleados", async (req, res) => {
+  try {
+    const datos = await Usuarios.find(
+      { role: "empleado" },
+      "nombres apellidos numero_documento role estado"
+    );
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay Empleados");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
 });
+
+app.post("/registrarEmpleado", async (req, res) => {
+  try {
+    const nombres = req.body.nombres;
+    const apellidos = req.body.apellidos;
+    const numero_documento = req.body.numero_documento;
+    const servicio = req.body.servicio;
+    const telefono = req.body.telefono;
+    const direccion = req.body.direccion;
+    const email = req.body.email;
+    const password = req.body.password2;
+
+    const createUser = new Usuarios({
+      nombres: nombres,
+      apellidos: apellidos,
+      numero_documento: numero_documento,
+      telefono: telefono,
+      direccion: direccion,
+      email: email,
+      password: password,
+      role: "empleado",
+      estado: "activo",
+    });
+
+    const created = await createUser.save();
+
+    const id_usuario = created["_id"];
+
+    const createEmpleado = new Empleados({
+      emp_usuario_id: id_usuario,
+      emp_servicio_id: servicio,
+    });
+
+    const createdEmpleado = await createEmpleado.save();
+
+    res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+//USUARIOS EXTERNOS -------------------------------------------
+
+app.post("/registrarExterno", async (req, res) => {
+  try {
+    const nombres = req.body.nombres;
+    const apellidos = req.body.apellidos;
+    const numero_documento = req.body.numero_documento;
+    const telefono = req.body.telefono;
+    const direccion = req.body.direccion;
+    const email = req.body.email;
+    const password = req.body.password2;
+
+    const createUser = new Usuarios({
+      nombres: nombres,
+      apellidos: apellidos,
+      numero_documento: numero_documento,
+      telefono: telefono,
+      direccion: direccion,
+      email: email,
+      password: password,
+      role: "externo",
+      estado: "activo",
+    });
+
+    const created = await createUser.save();
+
+    const id_usuario = created["_id"];
+
+    const createExterno = new Externos({
+      ext_usuario_id: id_usuario,
+    });
+
+    const createdExterno = await createExterno.save();
+
+    res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+//SERVICIOS -----------------------------------------------
+
+app.post("/cargarServicios", async (req, res) => {
+  try {
+    const datos = await Servicios.find();
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/registrarServicio", async (req, res) => {
+  try {
+    const nombre = req.body.nombre;
+    const costo = req.body.costo;
+    const descripcion = req.body.descripcion;
+
+    const createServicio = new Servicios({
+      ser_nombre: nombre,
+      ser_costo: costo,
+      ser_descripcion: descripcion,
+      ser_estado: "activo",
+    });
+
+    const created = await createServicio.save();
+
+    res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+//CITAS ----------------------------------------------------
 
 app.post("/cargarCitas", async (req, res) => {
   try {
@@ -174,18 +282,54 @@ app.post("/cargarCitas", async (req, res) => {
   }
 });
 
-app.post("/cargarInternos", async (req, res) => {
+app.post("/cargarCitasExterno", async (req, res) => {
+  const externo = req.body.id_externo;
+  const empleado = "61b7c00d9eea95379336b9c7";
+  console.log(externo);
   try {
-    const datos = await Usuarios.find({role: 'interno'}, "nombres apellidos numero_documento role estado");
+    const datosEmpleado = await Usuarios.find({ _id: empleado });
+    const datosCitas = await Citas.find({ cit_externo_id: externo });
+    const datos = await Externos.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(externo),
+        },
+      },
+      {
+        $lookup: {
+          from: "citas",
+          localField: "_id",
+          foreignField: "cit_externo_id",
+          as: "citas",
+        },
+      },
+      {
+        $unwind: "$citas",
+      },
+      {
+        $lookup: {
+          from: "empleados",
+          localField: "cit_empleado_id",
+          foreignField: "_id",
+          as: "empleado",
+        },
+      },
+    ]);
+
+    console.log(datos);
+    //console.log(datosCitas);
     if (datos) {
       res.status(200).json(datos);
     } else {
-      res.status(400).send("No hay internos");
+      res.status(400).send("No hay citas");
     }
   } catch (error) {
+    console.log(error);
     res.status(400).send(error);
   }
 });
+
+//PUERTO ---------------------------------------------------
 
 app.listen(port, () => {
   console.log("Server iniciado");

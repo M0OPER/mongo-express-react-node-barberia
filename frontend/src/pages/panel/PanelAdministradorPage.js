@@ -1,5 +1,6 @@
 /* eslint-disable no-multi-str */
 import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function PanelAdministradorPage() {
   const [interno, setInterno] = useState({
@@ -64,7 +65,7 @@ export default function PanelAdministradorPage() {
             window.alert("Usuario en uso");
           } else {
             window.alert("Registrado con exito");
-            //CARGAR USUARIOS INTERNOS
+            cargarInternos();
           }
         } catch (error) {
           console.log(error);
@@ -74,7 +75,6 @@ export default function PanelAdministradorPage() {
   };
 
   const cargarCitas = async (event) => {
-    event.preventDefault();
     try {
       const res = await fetch("/cargarCitas", {
         method: "POST",
@@ -98,7 +98,7 @@ export default function PanelAdministradorPage() {
   };
 
   const cargarInternos = async (event) => {
-    event.preventDefault();
+    //event.preventDefault();
     try {
       const res = await fetch("/cargarInternos", {
         method: "POST",
@@ -129,9 +129,17 @@ export default function PanelAdministradorPage() {
             "</td> \
           <td>" +
             response[index]["role"] +
-            "</td> \
-          <td>s</td> \
-          </tr>";
+            "</td>";
+          if (response[index]["estado"] === "activo") {
+            internos +=
+              '<td><button idusuario="' +
+              response[index]["_id"] + '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+          } else if (response[index]["estado"] === "inactivo") {
+            internos +=
+              '<td><button idusuario="' +
+              response[index]["_id"] + '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+          }
+          internos += "</tr>";
         }
         document.getElementById("tblInternos").innerHTML = internos;
       } else {
@@ -158,8 +166,10 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-citas"
               aria-selected="true"
             >
-              CITAS
+              CITAS - 
+              <FontAwesomeIcon icon="address-book" />
             </button>
+            
             <button
               onClick={cargarInternos}
               className="nav-link"
@@ -171,7 +181,8 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-internos"
               aria-selected="false"
             >
-              USUARIOS INTERNOS
+              USUARIOS INTERNOS - 
+              <FontAwesomeIcon icon="user-cog" />
             </button>
             <button
               className="nav-link"
@@ -183,7 +194,8 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-contact"
               aria-selected="false"
             >
-              EMPLEADOS
+              EMPLEADOS - 
+              <FontAwesomeIcon icon="user-check" />
             </button>
             <button
               className="nav-link"
@@ -195,7 +207,8 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-contact"
               aria-selected="false"
             >
-              CLIENTES
+              CLIENTES - 
+              <FontAwesomeIcon icon="user-tag" />
             </button>
           </div>
         </nav>
