@@ -21,6 +21,119 @@ export default function PanelAdministradorPage() {
     setInterno({ ...interno, [name]: value });
   };
 
+  const cargarCitas = async (event) => {
+    try {
+      const res = await fetch("/cargarCitas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay citas");
+      } else if (res.status === 404) {
+        window.alert("No hay citas");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        var citas = "";
+        for (let index = 0; index < response.length; index++) {
+          citas +=
+            '<tr> \
+          <th scope="row">' +
+            (index + 1) +
+            "</th> \
+          <td>" +
+            response[index]["datosEmpleado"][0].nombres +
+            " " +
+            response[index]["datosEmpleado"][0].apellidos +
+            "</td> \
+            <td>" +
+            response[index]["datosExterno"][0].nombres +
+            " " +
+            response[index]["datosExterno"][0].apellidos +
+            "</td> \
+          <td>" +
+            response[index]["datosServicio"][0].ser_nombre +
+            "</td> \
+            <td class='text-uppercase fw-bold'>" +
+            response[index].cit_estado +
+            "</td> \
+            <td><button idcita='" +
+            response[index]["_id"] +
+            "' type='button' class='btn btn-info verDetalles'>VER DETALLES</button></td> \
+            <td><button idcita='" +
+            response[index]["_id"] +
+            "' type='button' class='btn btn-warning text-uppercase fw-bold verDetalles'>" +
+            response[index].cit_calificacion +
+            "</button></td>";
+          citas += "</tr>";
+        }
+        document.getElementById("tblCitas").innerHTML = citas;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  //INTERNOS
+
+  const cargarInternos = async (event) => {
+    //event.preventDefault();
+    try {
+      const res = await fetch("/cargarInternos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay internos");
+      } else if (res.status === 404) {
+        window.alert("No hay internos");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        var internos = "";
+        for (let index = 0; index < response.length; index++) {
+          internos +=
+            '<tr> \
+          <th scope="row">' +
+            (index + 1) +
+            "</th> \
+          <td>" +
+            response[index]["nombres"] +
+            " " +
+            response[index]["apellidos"] +
+            "</td> \
+          <td>" +
+            response[index]["numero_documento"] +
+            "</td> \
+          <td>" +
+            response[index]["email"] +
+            "</td>";
+          if (response[index]["estado"] === "activo") {
+            internos +=
+              '<td><button idusuario="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+          } else if (response[index]["estado"] === "inactivo") {
+            internos +=
+              '<td><button idusuario="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+          }
+          internos += "</tr>";
+        }
+        document.getElementById("tblInternos").innerHTML = internos;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const admCrearInterno = async (event) => {
     event.preventDefault();
     const {
@@ -74,47 +187,26 @@ export default function PanelAdministradorPage() {
     }
   };
 
-  const cargarCitas = async (event) => {
-    try {
-      const res = await fetch("/cargarCitas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (res.status === 400 || !res) {
-        window.alert("No hay citas");
-      } else if (res.status === 404) {
-        window.alert("No hay citas");
-      } else if (res.status === 200) {
-        const response = await res.json();
-        console.log(response);
-      } else {
-        window.alert("Error dentro del servidor");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //EMPLEADOS
 
-  const cargarInternos = async (event) => {
+  const cargarEmpleados = async (event) => {
     //event.preventDefault();
     try {
-      const res = await fetch("/cargarInternos", {
+      const res = await fetch("/cargarEmpleados", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
       });
       if (res.status === 400 || !res) {
-        window.alert("No hay internos");
+        window.alert("No hay empleados");
       } else if (res.status === 404) {
-        window.alert("No hay internos");
+        window.alert("No hay empleados");
       } else if (res.status === 200) {
         const response = await res.json();
-        var internos = "";
+        var empleados = "";
         for (let index = 0; index < response.length; index++) {
-          internos +=
+          empleados +=
             '<tr> \
           <th scope="row">' +
             (index + 1) +
@@ -128,22 +220,22 @@ export default function PanelAdministradorPage() {
             response[index]["numero_documento"] +
             "</td> \
           <td>" +
-            response[index]["role"] +
+            response[index]["email"] +
             "</td>";
           if (response[index]["estado"] === "activo") {
-            internos +=
+            empleados +=
               '<td><button idusuario="' +
               response[index]["_id"] +
               '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
           } else if (response[index]["estado"] === "inactivo") {
-            internos +=
+            empleados +=
               '<td><button idusuario="' +
               response[index]["_id"] +
               '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
           }
-          internos += "</tr>";
+          empleados += "</tr>";
         }
-        document.getElementById("tblInternos").innerHTML = internos;
+        document.getElementById("tblEmpleados").innerHTML = empleados;
       } else {
         window.alert("Error dentro del servidor");
       }
@@ -151,6 +243,65 @@ export default function PanelAdministradorPage() {
       console.error(error);
     }
   };
+
+  //CLIENTES
+
+  const cargarClientes = async (event) => {
+    //event.preventDefault();
+    try {
+      const res = await fetch("/cargarClientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay clientes");
+      } else if (res.status === 404) {
+        window.alert("No hay clientes");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        var clientes = "";
+        for (let index = 0; index < response.length; index++) {
+          clientes +=
+            '<tr> \
+          <th scope="row">' +
+            (index + 1) +
+            "</th> \
+          <td>" +
+            response[index]["nombres"] +
+            " " +
+            response[index]["apellidos"] +
+            "</td> \
+          <td>" +
+            response[index]["numero_documento"] +
+            "</td> \
+          <td>" +
+            response[index]["email"] +
+            "</td>";
+          if (response[index]["estado"] === "activo") {
+            clientes +=
+              '<td><button idusuario="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+          } else if (response[index]["estado"] === "inactivo") {
+            clientes +=
+              '<td><button idusuario="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+          }
+          clientes += "</tr>";
+        }
+        document.getElementById("tblClientes").innerHTML = clientes;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  cargarCitas();
 
   return (
     <>
@@ -203,13 +354,14 @@ export default function PanelAdministradorPage() {
             </button>
 
             <button
+              onClick={cargarEmpleados}
               className="nav-link"
-              id="nav-contact-tab"
+              id="nav-empleados-tab"
               data-bs-toggle="tab"
-              data-bs-target="#nav-contact"
+              data-bs-target="#nav-empleados"
               type="button"
               role="tab"
-              aria-controls="nav-contact"
+              aria-controls="nav-empleados"
               aria-selected="false"
             >
               EMPLEADOS -
@@ -217,13 +369,14 @@ export default function PanelAdministradorPage() {
             </button>
 
             <button
+              onClick={cargarClientes}
               className="nav-link"
-              id="nav-contact-tab"
+              id="nav-clientes-tab"
               data-bs-toggle="tab"
-              data-bs-target="#nav-contact"
+              data-bs-target="#nav-clientes"
               type="button"
               role="tab"
-              aria-controls="nav-contact"
+              aria-controls="nav-clientes"
               aria-selected="false"
             >
               CLIENTES -
@@ -232,18 +385,17 @@ export default function PanelAdministradorPage() {
 
             <button
               className="nav-link"
-              id="nav-contact-tab"
+              id="nav-reportes-tab"
               data-bs-toggle="tab"
-              data-bs-target="#nav-contact"
+              data-bs-target="#nav-reportes"
               type="button"
               role="tab"
-              aria-controls="nav-contact"
+              aria-controls="nav-reportes"
               aria-selected="false"
             >
               REPORTES -
               <FontAwesomeIcon icon="clipboard-list" />
             </button>
-
           </div>
         </nav>
         <div className="tab-content" id="nav-tabContent">
@@ -254,13 +406,95 @@ export default function PanelAdministradorPage() {
             aria-labelledby="nav-citas-tab"
           >
             <hr></hr>
+            <table className="table table-success table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">EMPLEADO</th>
+                  <th scope="col">CLIENTE</th>
+                  <th scope="col">SERVICIO</th>
+                  <th scope="col">ESTADO</th>
+                  <th scope="col">DETALLES - COMENTARIOS</th>
+                  <th scope="col">CALIFICACION</th>
+                </tr>
+              </thead>
+              <tbody id="tblCitas"></tbody>
+            </table>
+            <hr></hr>
           </div>
+
           <div
             className="tab-pane fade"
             id="nav-internos"
             role="tabpanel"
             aria-labelledby="nav-internos-tab"
           >
+            <hr></hr>
+            <table className="table table-success table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">NOMBRES</th>
+                  <th scope="col">CEDULA</th>
+                  <th scope="col">E-MAIL</th>
+                  <th scope="col">ON / OFF</th>
+                </tr>
+              </thead>
+              <tbody id="tblInternos"></tbody>
+            </table>
+            <hr></hr>
+          </div>
+
+          <div
+            className="tab-pane fade"
+            id="nav-servicios"
+            role="tabpanel"
+            aria-labelledby="nav-servicios-tab"
+          >
+            <hr></hr>
+            <table className="table table-success table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">NOMBRE</th>
+                  <th scope="col">COSTO</th>
+                  <th scope="col">ON / OFF</th>
+                </tr>
+              </thead>
+              <tbody id="tblServicios"></tbody>
+            </table>
+            <hr></hr>
+          </div>
+
+          <div
+            className="tab-pane fade"
+            id="nav-empleados"
+            role="tabpanel"
+            aria-labelledby="nav-empleados-tab"
+          >
+            <hr></hr>
+            <table className="table table-success table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">NOMBRES</th>
+                  <th scope="col">CEDULA</th>
+                  <th scope="col">EMAIL</th>
+                  <th scope="col">ON / OFF</th>
+                </tr>
+              </thead>
+              <tbody id="tblEmpleados"></tbody>
+            </table>
+            <hr></hr>
+          </div>
+
+          <div
+            className="tab-pane fade"
+            id="nav-clientes"
+            role="tabpanel"
+            aria-labelledby="nav-clientes-tab"
+          >
+            <hr></hr>
             <table className="table table-success table-striped">
               <thead>
                 <tr>
@@ -271,24 +505,18 @@ export default function PanelAdministradorPage() {
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
-              <tbody id="tblInternos">
-                <tr>
-                  <th scope="row">1</th>
-                  <td>Mark</td>
-                  <td>Otto</td>
-                  <td>@mdo</td>
-                  <td>@mdo</td>
-                </tr>
-              </tbody>
+              <tbody id="tblClientes"></tbody>
             </table>
+            <hr></hr>
           </div>
+
           <div
             className="tab-pane fade"
-            id="nav-contact"
+            id="nav-reportes"
             role="tabpanel"
-            aria-labelledby="nav-contact-tab"
+            aria-labelledby="nav-reportes-tab"
           >
-            ...
+            <h1>REPORTES</h1>
           </div>
         </div>
       </div>

@@ -142,7 +142,6 @@ export default function PanelExternoPage() {
         window.alert("No hay citas");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
         var citas = "";
         for (let index = 0; index < response.length; index++) {
           citas +=

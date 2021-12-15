@@ -83,7 +83,7 @@ app.post("/cargarInternos", async (req, res) => {
   try {
     const datos = await Usuarios.find(
       { role: "interno" },
-      "nombres apellidos numero_documento role estado"
+      "nombres apellidos numero_documento email estado"
     );
     if (datos) {
       res.status(200).json(datos);
@@ -139,7 +139,7 @@ app.post("/cargarEmpleados", async (req, res) => {
   try {
     const datos = await Usuarios.find(
       { role: "empleado" },
-      "nombres apellidos numero_documento role estado"
+      "nombres apellidos numero_documento email estado"
     );
     if (datos) {
       res.status(200).json(datos);
@@ -237,6 +237,22 @@ app.post("/seleccionarEmpleado", async (req, res) => {
 
 //USUARIOS EXTERNOS -------------------------------------------
 
+app.post("/cargarClientes", async (req, res) => {
+  try {
+    const datos = await Usuarios.find(
+      { role: "externo" },
+      "nombres apellidos numero_documento email estado"
+    );
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay Clientes");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 app.post("/registrarExterno", async (req, res) => {
   try {
     const nombres = req.body.nombres;
@@ -315,7 +331,55 @@ app.post("/registrarServicio", async (req, res) => {
 
 app.post("/cargarCitas", async (req, res) => {
   try {
-    const datos = await Citas.find();
+    const datos = await Citas.aggregate([
+      {
+        $lookup: {
+          from: "externos",
+          localField: "cit_externo_id",
+          foreignField: "_id",
+          as: "externo",
+        },
+      },
+      {
+        $unwind: "$externo",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "externo.ext_usuario_id",
+          foreignField: "_id",
+          as: "datosExterno",
+        },
+      },
+      {
+        $lookup: {
+          from: "empleados",
+          localField: "cit_empleado_id",
+          foreignField: "_id",
+          as: "empleado",
+        },
+      },
+      {
+        $unwind: "$empleado",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "empleado.emp_usuario_id",
+          foreignField: "_id",
+          as: "datosEmpleado",
+        },
+      },
+      {
+        $lookup: {
+          from: "servicios",
+          localField: "empleado.emp_servicio_id",
+          foreignField: "_id",
+          as: "datosServicio",
+        },
+      },
+    ]);
+
     if (datos) {
       res.status(200).json(datos);
     } else {

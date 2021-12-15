@@ -17,6 +17,10 @@ const citasTabla = new mongoose.Schema({
     type: String,
     required: true,
   },
+  cit_calificacion: {
+    type: String,
+    required: false,
+  },
 });
 
 citasTabla.pre("save", async function (next) {
