@@ -9,6 +9,10 @@ const citasTabla = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  cit_fecha: {
+    type: Date,
+    required: true,
+  },
   cit_estado: {
     type: String,
     required: true,

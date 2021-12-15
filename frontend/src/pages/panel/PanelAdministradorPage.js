@@ -133,11 +133,13 @@ export default function PanelAdministradorPage() {
           if (response[index]["estado"] === "activo") {
             internos +=
               '<td><button idusuario="' +
-              response[index]["_id"] + '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+              response[index]["_id"] +
+              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
           } else if (response[index]["estado"] === "inactivo") {
             internos +=
               '<td><button idusuario="' +
-              response[index]["_id"] + '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+              response[index]["_id"] +
+              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
           }
           internos += "</tr>";
         }
@@ -166,10 +168,10 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-citas"
               aria-selected="true"
             >
-              CITAS - 
+              CITAS -
               <FontAwesomeIcon icon="address-book" />
             </button>
-            
+
             <button
               onClick={cargarInternos}
               className="nav-link"
@@ -181,9 +183,25 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-internos"
               aria-selected="false"
             >
-              USUARIOS INTERNOS - 
+              INTERNOS -
               <FontAwesomeIcon icon="user-cog" />
             </button>
+
+            <button
+              onClick={cargarInternos}
+              className="nav-link"
+              id="nav-servicios-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#nav-servicios"
+              type="button"
+              role="tab"
+              aria-controls="nav-servicios"
+              aria-selected="false"
+            >
+              SERVICIOS -
+              <FontAwesomeIcon icon="calendar-check" />
+            </button>
+
             <button
               className="nav-link"
               id="nav-contact-tab"
@@ -194,9 +212,10 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-contact"
               aria-selected="false"
             >
-              EMPLEADOS - 
+              EMPLEADOS -
               <FontAwesomeIcon icon="user-check" />
             </button>
+
             <button
               className="nav-link"
               id="nav-contact-tab"
@@ -207,9 +226,24 @@ export default function PanelAdministradorPage() {
               aria-controls="nav-contact"
               aria-selected="false"
             >
-              CLIENTES - 
+              CLIENTES -
               <FontAwesomeIcon icon="user-tag" />
             </button>
+
+            <button
+              className="nav-link"
+              id="nav-contact-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#nav-contact"
+              type="button"
+              role="tab"
+              aria-controls="nav-contact"
+              aria-selected="false"
+            >
+              REPORTES -
+              <FontAwesomeIcon icon="clipboard-list" />
+            </button>
+
           </div>
         </nav>
         <div className="tab-content" id="nav-tabContent">

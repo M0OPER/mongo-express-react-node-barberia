@@ -1,14 +1,29 @@
-import React, { useContext } from "react";
+/* eslint-disable no-multi-str */
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../auth/AuthContext";
 
 export default function PanelExternoPage() {
-
   const { user } = useContext(AuthContext);
+
+  const handleInput = (event) => {
+    let name = event.target.name;
+    let value = event.target.value;
+
+    setCita({ ...cita, [name]: value });
+  };
+
+  //CITAS
+  const [cita, setCita] = useState({
+    externo: user["user"],
+    servicio: "",
+    empleado: "",
+    fecha: "",
+  });
 
   const btnSolicitarServicio = async (event) => {
     event.preventDefault();
     try {
-      const res = await fetch("/seleccionarServicios", {
+      const res = await fetch("/cargarServicios", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -20,7 +35,57 @@ export default function PanelExternoPage() {
         window.alert("No hay citas");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
+        var servicios = "<option value='0'>--SELECCIONAR SERVICIO--</option>";
+        for (let index = 0; index < response.length; index++) {
+          servicios +=
+            '<option value="' +
+            response[index]["_id"] +
+            '">' +
+            response[index]["ser_nombre"] +
+            " - $" +
+            response[index]["ser_costo"] +
+            "</option>";
+        }
+        document.getElementById("seleccionarServicio").innerHTML = servicios;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const seleccionarEmpleado = async (event) => {
+    event.preventDefault();
+    const { servicio } = cita;
+    try {
+      const res = await fetch("/seleccionarEmpleado", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          servicio,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        console.log("No hay servicio");
+      } else if (res.status === 404) {
+        console.log("No hay servicio");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        var empleados = "<option value='0'>--SELECCIONAR EMPLEADO--</option>";
+        for (let index = 0; index < response.length; index++) {
+          empleados +=
+            '<option value="' +
+            response[index]["empleados"]._id +
+            '">' +
+            response[index]["datosEmpleado"][0].nombres +
+            " " +
+            response[index]["datosEmpleado"][0].apellidos +
+            "</option>";
+        }
+        document.getElementById("seleccionarEmpleado").innerHTML = empleados;
       } else {
         window.alert("Error dentro del servidor");
       }
@@ -31,6 +96,32 @@ export default function PanelExternoPage() {
 
   const extSolicitarServicio = async (event) => {
     event.preventDefault();
+    const { externo, empleado, fecha } = cita;
+    if (fecha === "") {
+      alert("Por favor rellene todos los campos");
+    } else {
+      try {
+        const res = await fetch("/registrarCita", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            externo,
+            empleado,
+            fecha,
+          }),
+        });
+        if (res.status === 400 || !res) {
+          window.alert("Mal");
+        } else {
+          window.alert("Registrado con exito");
+          cargarCitasExterno();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
   };
 
   const cargarCitasExterno = async (event) => {
@@ -52,6 +143,36 @@ export default function PanelExternoPage() {
       } else if (res.status === 200) {
         const response = await res.json();
         console.log(response);
+        var citas = "";
+        for (let index = 0; index < response.length; index++) {
+          citas +=
+            '<tr> \
+          <th scope="row">' +
+            (index + 1) +
+            "</th> \
+          <td>" +
+            response[index]["datosEmpleado"][0].nombres +
+            " " +
+            response[index]["datosEmpleado"][0].apellidos +
+            "</td> \
+          <td>" +
+            response[index]["datosServicio"][0].ser_nombre +
+            "</td> \
+            <td class='text-uppercase fw-bold'>" +
+            response[index]["cita"].cit_estado +
+            "</td> \
+            <td>" +
+            response[index]["numero_documento"] +
+            "</td> \
+            <td>" +
+            response[index]["numero_documento"] +
+            "</td> \
+            <td>" +
+            response[index]["role"] +
+            "</td>";
+          citas += "</tr>";
+        }
+        document.getElementById("tblCitas").innerHTML = citas;
       } else {
         window.alert("Error dentro del servidor");
       }
@@ -59,6 +180,8 @@ export default function PanelExternoPage() {
       console.error(error);
     }
   };
+
+  cargarCitasExterno();
 
   return (
     <>
@@ -118,6 +241,8 @@ export default function PanelExternoPage() {
       </div>
       <button
         onClick={btnSolicitarServicio}
+        data-bs-toggle="modal"
+        data-bs-target="#modalSolicitarServicio"
         id="mdlSolicitarServicio"
         type="button"
         className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
@@ -145,33 +270,69 @@ export default function PanelExternoPage() {
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="form-group">
-                  <label htmlFor="exampleInputEmail1">Usuario</label>
-                  <input
-                    name="isEmail"
-                    type="email"
-                    className="form-control"
-                    aria-describedby="emailHelp"
-                  />
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <input
+                      value={user["name"]}
+                        type="text"
+                        className="form-control"
+                        placeholder="Nombres"
+                        disabled
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="exampleInputPassword1">Contraseña</label>
-                  <input
-                    name="isPassword"
-                    type="password"
-                    className="form-control"
-                  />
-                  <small id="emailHelp" className="form-text text-muted">
-                    Por favor no comparta su contraseña con nadie...
+
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <select
+                        id="seleccionarServicio"
+                        name="servicio"
+                        value={cita.servicio}
+                        onInput={handleInput}
+                        onChange={seleccionarEmpleado}
+                        className="form-control"
+                      >
+                        <option value="0">--SELECCIONAR SERVICIO--</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <select
+                        id="seleccionarEmpleado"
+                        name="empleado"
+                        value={cita.empleado}
+                        onChange={handleInput}
+                        className="form-control"
+                      >
+                        <option value="0">--SELECCIONAR EMPLEADO--</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <input
+                        name="fecha"
+                        value={cita.fecha}
+                        onChange={handleInput}
+                        type="date"
+                        className="form-control"
+                        placeholder="FECHA"
+                      />
+                    </div>
+                  </div>
+                  <small className="form-text text-muted">
+                    Seleccione los empleados disponibles
                   </small>
-                </div>
-                <div className="form-group form-check">
-                  <div>
-                    <a href="/registro">¿No se ha registrado en el sistema?</a>
-                  </div>
-                  <div>
-                    <a href="/recuperar_password">¿Olvidó su contraseña?</a>
-                  </div>
                 </div>
               </div>
               <div className="modal-footer modalFoot" align="center">
@@ -179,7 +340,7 @@ export default function PanelExternoPage() {
                   type="submit"
                   className="btn btn-outline-info my-2 my-sm-0"
                 >
-                  INGRESAR
+                  ENVIAR REGISTRO
                 </button>
               </div>
             </div>

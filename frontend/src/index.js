@@ -8,9 +8,9 @@ import './general.css';
 import { BaseApp } from './BaseApp';
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faAddressBook, faUserCog, faUserTag, faUserCheck, faCalendarCheck } from '@fortawesome/free-solid-svg-icons'
+import { faAddressBook, faUserCog, faUserTag, faUserCheck, faCalendarCheck, faClipboardList } from '@fortawesome/free-solid-svg-icons'
 
-library.add( faAddressBook, faUserCog, faUserTag, faUserCheck, faCalendarCheck)
+library.add( faAddressBook, faUserCog, faUserTag, faUserCheck, faCalendarCheck, faClipboardList)
 
 ReactDOM.render(
   <BaseApp />,

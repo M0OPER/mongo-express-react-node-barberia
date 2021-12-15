@@ -191,6 +191,50 @@ app.post("/registrarEmpleado", async (req, res) => {
   }
 });
 
+//EMPLEADOS HACE PARTE DE CITAS
+
+app.post("/seleccionarEmpleado", async (req, res) => {
+  const servicio = req.body.servicio;
+  console.log(servicio);
+  try {
+    const datos = await Servicios.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(servicio),
+        },
+      },
+      {
+        $lookup: {
+          from: "empleados",
+          localField: "_id",
+          foreignField: "emp_servicio_id",
+          as: "empleados",
+        },
+      },
+      {
+        $unwind: "$empleados",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "empleados.emp_usuario_id",
+          foreignField: "_id",
+          as: "datosEmpleado",
+        },
+      },
+    ]);
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 //USUARIOS EXTERNOS -------------------------------------------
 
 app.post("/registrarExterno", async (req, res) => {
@@ -284,11 +328,7 @@ app.post("/cargarCitas", async (req, res) => {
 
 app.post("/cargarCitasExterno", async (req, res) => {
   const externo = req.body.id_externo;
-  const empleado = "61b7c00d9eea95379336b9c7";
-  console.log(externo);
   try {
-    const datosEmpleado = await Usuarios.find({ _id: empleado });
-    const datosCitas = await Citas.find({ cit_externo_id: externo });
     const datos = await Externos.aggregate([
       {
         $match: {
@@ -300,18 +340,37 @@ app.post("/cargarCitasExterno", async (req, res) => {
           from: "citas",
           localField: "_id",
           foreignField: "cit_externo_id",
-          as: "citas",
+          as: "cita",
         },
       },
       {
-        $unwind: "$citas",
+        $unwind: "$cita",
       },
       {
         $lookup: {
           from: "empleados",
-          localField: "cit_empleado_id",
+          localField: "cita.cit_empleado_id",
           foreignField: "_id",
           as: "empleado",
+        },
+      },
+      {
+        $unwind: "$empleado",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "empleado.emp_usuario_id",
+          foreignField: "_id",
+          as: "datosEmpleado",
+        },
+      },
+      {
+        $lookup: {
+          from: "servicios",
+          localField: "empleado.emp_servicio_id",
+          foreignField: "_id",
+          as: "datosServicio",
         },
       },
     ]);
@@ -325,6 +384,27 @@ app.post("/cargarCitasExterno", async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    res.status(400).send(error);
+  }
+});
+
+app.post("/registrarCita", async (req, res) => {
+  try {
+    const externo = req.body.externo;
+    const empleado = req.body.empleado;
+    const fecha = req.body.fecha;
+
+    const createCita = new Citas({
+      cit_externo_id: externo,
+      cit_empleado_id: empleado,
+      cit_fecha: fecha,
+      cit_estado: "espera",
+    });
+
+    const created = await createCita.save();
+
+    res.status(200).send("HECHO");
+  } catch (error) {
     res.status(400).send(error);
   }
 });
