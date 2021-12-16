@@ -18,6 +18,7 @@ const Internos = require("./models/internosTabla");
 const Empleados = require("./models/empleadosTabla");
 const Externos = require("./models/externosTabla");
 const Servicios = require("./models/serviciosTabla");
+const ServiciosInternos = require("./models/serviciosInternosTabla");
 const Citas = require("./models/citasTabla");
 
 app.use(express.json());
@@ -81,10 +82,18 @@ app.get("/logout", async (req, res) => {
 //USUARIOS INTERNOS
 app.post("/cargarInternos", async (req, res) => {
   try {
-    const datos = await Usuarios.find(
-      { role: "interno" },
-      "nombres apellidos numero_documento email estado"
-    );
+    const datos = await Internos.aggregate([
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "int_usuario_id",
+          foreignField: "_id",
+          as: "datosUsuario",
+        },
+      },
+    ]);
+
+    console.log(datos);
     if (datos) {
       res.status(200).json(datos);
     } else {
@@ -125,8 +134,8 @@ app.post("/registrarInterno", async (req, res) => {
       int_usuario_id: id_usuario,
     });
 
-    const createdExterno = await createInterno.save();
-
+    const createdInterno = await createInterno.save();
+    console.log(createdInterno);
     res.status(200).send("HECHO");
   } catch (error) {
     res.status(400).send(error);
@@ -322,6 +331,95 @@ app.post("/registrarServicio", async (req, res) => {
     const created = await createServicio.save();
 
     res.status(200).send("HECHO");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+//SERVICIOS INTERNOS ----------------------------------------
+app.post("/cargarServiciosAsignados", async (req, res) => {
+  const interno = req.body.id_interno;
+  console.log("asignado => " + interno);
+  try {
+    //const datos = await ServiciosInternos.find({ si_interno_id: interno });
+    const datos = await Internos.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(interno),
+        },
+      },
+      {
+        $lookup: {
+          from: "serviciosinternos",
+          localField: "_id",
+          foreignField: "si_interno_id",
+          as: "datosServicios",
+        },
+      },
+      {
+        $unwind: "$datosServicios",
+      },
+      {
+        $lookup: {
+          from: "servicios",
+          localField: "datosServicios.si_servicio_id",
+          foreignField: "_id",
+          as: "datoServicio",
+        },
+      },
+    ]);
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios asignados");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/agregarServicioInterno", async (req, res) => {
+  try {
+    const interno = req.body.si_interno_id;
+    const servicio = req.body.si_servicio_id;
+
+    const datos = await ServiciosInternos.find({
+      si_interno_id: interno,
+      si_servicio_id: servicio,
+    });
+    console.log(datos);
+    if (datos.length === 0) {
+      const createServicioInterno = new ServiciosInternos({
+        si_interno_id: interno,
+        si_servicio_id: servicio,
+      });
+
+      const created = await createServicioInterno.save();
+      res.status(200).send("HECHO");
+    } else {
+      res.status(400).send("Ya existe el registro");
+      console.log("Ya existe el registro");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/eliminarServicioInterno", async (req, res) => {
+  const interno = req.body.idinterno;
+  const servicio = req.body.idservicio;
+  try {
+    const datos = await ServiciosInternos.deleteOne({
+      si_interno_id: interno,
+      si_servicio_id: servicio,
+    });
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios asignados");
+    }
   } catch (error) {
     res.status(400).send(error);
   }

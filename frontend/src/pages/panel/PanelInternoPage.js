@@ -226,35 +226,7 @@ export default function PanelInternoPage() {
     descripcion: "",
   });
 
-  const intCrearServicio = async (event) => {
-    event.preventDefault();
-    const { nombre, costo, descripcion } = servicio;
-    if (nombre === "" || costo === "") {
-      alert("Por favor rellene todos los campos");
-    } else {
-      try {
-        const res = await fetch("/registrarServicio", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nombre,
-            costo,
-            descripcion,
-          }),
-        });
-        if (res.status === 400 || !res) {
-          window.alert("Ocurrió un error");
-        } else {
-          window.alert("Registrado con exito");
-          cargarServicios();
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
+  
 
   const cargarServicios = async (event) => {
     try {
@@ -445,14 +417,6 @@ export default function PanelInternoPage() {
               </tbody>
             </table>
             <hr></hr>
-            <button
-              data-bs-toggle="modal"
-              data-bs-target="#modalCrearServicio"
-              type="button"
-              className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
-            >
-              CREAR SERVICIO
-            </button>
           </div>
         </div>
       </div>
@@ -615,85 +579,6 @@ export default function PanelInternoPage() {
                   <small id="passwordHelp" className="form-text text-muted">
                     La contraseña debe tener mas de 7 caracteres.
                   </small>
-                </div>
-              </div>
-              <div className="modal-footer modalFoot" align="center">
-                <div id="msgRegistro"></div>
-                <button
-                  id="regRegistrar"
-                  type="submit"
-                  className="btn btn-verde"
-                >
-                  ENVIAR REGISTRO
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </form>
-      <form onSubmit={intCrearServicio} method="POST">
-        <div
-          className="modal fade"
-          id="modalCrearServicio"
-          aria-labelledby="exampleModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header modalHead">
-                <h5 className="modal-title" id="exampleModalLabel">
-                  CREAR SERVICIO
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <div className="row">
-                    <div className="col">
-                      <input
-                        name="nombre"
-                        value={servicio.nombre}
-                        onChange={handleInput}
-                        type="text"
-                        className="form-control"
-                        placeholder="Nombre"
-                        autoFocus
-                        maxLength="150"
-                      />
-                    </div>
-                    <div className="col">
-                      <input
-                        name="costo"
-                        value={servicio.costo}
-                        onChange={handleInput}
-                        type="number"
-                        className="form-control"
-                        placeholder="Costo"
-                        required
-                        maxLength="150"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <div className="row">
-                    <div className="col">
-                      <textarea
-                        name="descripcion"
-                        value={servicio.descripcion}
-                        onChange={handleInput}
-                        className="form-control"
-                        rows="2"
-                        placeholder="Descripcion del servicio"
-                      ></textarea>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div className="modal-footer modalFoot" align="center">

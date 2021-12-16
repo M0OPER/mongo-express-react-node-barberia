@@ -3,22 +3,27 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function PanelAdministradorPage() {
-  const [interno, setInterno] = useState({
-    nombres: "",
-    apellidos: "",
-    numero_documento: "",
-    telefono: "",
-    direccion: "",
-    email: "",
-    password1: "",
-    password2: "",
-  });
-
   const handleInput = (event) => {
     let name = event.target.name;
     let value = event.target.value;
-
+    setServicio({ ...servicio, [name]: value });
     setInterno({ ...interno, [name]: value });
+    setInternoServicios({ ...internoServicios, [name]: value });
+  };
+
+  //CITAS
+
+  const citasTabla = (event) => {
+    try {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "detalles") {
+        alert(event.target.attributes.getNamedItem("idcita").value);
+      } else if (tipoBoton === "calificacion") {
+        alert(event.target.attributes.getNamedItem("idcalificacion").value);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const cargarCitas = async (event) => {
@@ -58,12 +63,10 @@ export default function PanelAdministradorPage() {
             <td class='text-uppercase fw-bold'>" +
             response[index].cit_estado +
             "</td> \
-            <td><button idcita='" +
+            <td><button tipoboton='detalles' idcita='" +
             response[index]["_id"] +
-            "' type='button' class='btn btn-info verDetalles'>VER DETALLES</button></td> \
-            <td><button idcita='" +
-            response[index]["_id"] +
-            "' type='button' class='btn btn-warning text-uppercase fw-bold verDetalles'>" +
+            "' type='button' class='btn btn-info'>VER DETALLES</button></td> \
+            <td><button tipoboton='calificacion' idcalificacion='cal2324' type='button' class='btn btn-warning text-uppercase fw-bold'>" +
             response[index].cit_calificacion +
             "</button></td>";
           citas += "</tr>";
@@ -78,6 +81,170 @@ export default function PanelAdministradorPage() {
   };
 
   //INTERNOS
+
+  const [interno, setInterno] = useState({
+    nombres: "",
+    apellidos: "",
+    numero_documento: "",
+    telefono: "",
+    direccion: "",
+    email: "",
+    password1: "",
+    password2: "",
+  });
+
+  const [internoServicios, setInternoServicios] = useState({
+    si_interno_id: "",
+    si_servicio_id: "",
+  });
+
+  const internosTabla = (event) => {
+    try {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "detallesServicios") {
+        cargarSeleccionarServicio();
+        cargarServiciosAsignados(
+          event.target.attributes.getNamedItem("idinterno").value
+        );
+        setInternoServicios({
+          ...interno,
+          si_interno_id:
+            event.target.attributes.getNamedItem("idinterno").value,
+        });
+      } else if (tipoBoton === "onOff") {
+        alert(event.target.attributes.getNamedItem("idinterno").value);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const cargarSeleccionarServicio = async (event) => {
+    try {
+      const res = await fetch("/cargarServicios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay servicios");
+      } else if (res.status === 404) {
+        window.alert("No hay servicios");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+        var servicios = "<option value='0'>--SELECCIONAR SERVICIO--</option>";
+        for (let index = 0; index < response.length; index++) {
+          servicios +=
+            '<option value="' +
+            response[index]["_id"] +
+            '">' +
+            response[index]["ser_nombre"] +
+            " - $" +
+            response[index]["ser_costo"] +
+            "</option>";
+        }
+        document.getElementById("seleccionarServicio").innerHTML = servicios;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const cargarServiciosAsignados = async (interno) => {
+    const id_interno = interno;
+    try {
+      const res = await fetch("/cargarServiciosAsignados", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_interno,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay servicios");
+      } else if (res.status === 404) {
+        window.alert("No hay servicios");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+        var serviciosAsignados = "";
+        for (let index = 0; index < response.length; index++) {
+          serviciosAsignados +=
+            ' <button idinterno="' +
+            response[index]["_id"] +
+            '" idservicio="' +
+            response[index]["datoServicio"][0]._id +
+            '" type="button" class="btn btn-danger bloquearServicio">$' +
+            response[index]["datoServicio"][0].ser_costo +
+            " " +
+            response[index]["datoServicio"][0].ser_nombre +
+            "</button> ";
+        }
+        document.getElementById("serviciosAsignados").innerHTML =
+          serviciosAsignados;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const eliminarServicioAsignado = async (event) => {
+    try {
+      var idinterno = event.target.attributes.getNamedItem("idinterno").value;
+      var idservicio = event.target.attributes.getNamedItem("idservicio").value;
+      const res = await fetch("/eliminarServicioInterno", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idinterno,
+          idservicio,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("Error");
+      } else {
+        window.alert("Borrado de la lista");
+        cargarServiciosAsignados(idinterno);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const agregarServicioInterno = async (event) => {
+    event.preventDefault();
+    const { si_interno_id, si_servicio_id } = internoServicios;
+    try {
+      const res = await fetch("/agregarServicioInterno", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          si_interno_id,
+          si_servicio_id,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("Ya seleccionó el servicio");
+      } else {
+        window.alert("Registrado con exito");
+        cargarServiciosAsignados(si_interno_id);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const cargarInternos = async (event) => {
     //event.preventDefault();
@@ -102,25 +269,28 @@ export default function PanelAdministradorPage() {
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["nombres"] +
+            response[index]["datosUsuario"][0].nombres +
             " " +
-            response[index]["apellidos"] +
+            response[index]["datosUsuario"][0].apellidos +
             "</td> \
           <td>" +
-            response[index]["numero_documento"] +
+            response[index]["datosUsuario"][0].numero_documento +
             "</td> \
-          <td>" +
-            response[index]["email"] +
-            "</td>";
-          if (response[index]["estado"] === "activo") {
+            <td>" +
+            response[index]["datosUsuario"][0].email +
+            '</td> \
+          <td><button tipoboton="detallesServicios" data-bs-toggle="modal" data-bs-target="#modalServiciosInternos" idinterno=' +
+            response[index]["_id"] +
+            ' type="button" class="btn btn-info detallesServicio">VER DETALLES</button></td>';
+          if (response[index]["datosUsuario"][0].estado === "activo") {
             internos +=
               '<td><button idusuario="' +
-              response[index]["_id"] +
+              response[index]["datosUsuario"][0]._id +
               '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
+          } else if (response[index]["datosUsuario"][0].estado === "inactivo") {
             internos +=
               '<td><button idusuario="' +
-              response[index]["_id"] +
+              response[index]["datosUsuario"][0]._id +
               '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
           }
           internos += "</tr>";
@@ -183,6 +353,94 @@ export default function PanelAdministradorPage() {
         } catch (error) {
           console.log(error);
         }
+      }
+    }
+  };
+
+  //SERVICIOS
+
+  const [servicio, setServicio] = useState({
+    nombre: "",
+    costo: "",
+    descripcion: "",
+  });
+
+  const cargarServicios = async (event) => {
+    try {
+      const res = await fetch("/cargarServicios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay servicios");
+      } else if (res.status === 404) {
+        window.alert("No hay servicios");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+        var servicios = "";
+        for (let index = 0; index < response.length; index++) {
+          servicios +=
+            '<tr> \
+          <th scope="row">' +
+            (index + 1) +
+            "</th> \
+          <td>" +
+            response[index]["ser_nombre"] +
+            "</td> \
+          <td>" +
+            response[index]["ser_costo"] +
+            "</td>";
+          if (response[index]["ser_estado"] === "activo") {
+            servicios +=
+              '<td><button idservicio="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-success bloquearServicio">ACTIVO</button></td>';
+          } else if (response[index]["estado"] === "inactivo") {
+            servicios +=
+              '<td><button idservicio="' +
+              response[index]["_id"] +
+              '" type="button" class="btn btn-danger desbloquearServicio">INACTIVO</button></td>';
+          }
+          servicios += "</tr>";
+        }
+        document.getElementById("tblServicios").innerHTML = servicios;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const intCrearServicio = async (event) => {
+    event.preventDefault();
+    const { nombre, costo, descripcion } = servicio;
+    if (nombre === "" || costo === "") {
+      alert("Por favor rellene todos los campos");
+    } else {
+      try {
+        const res = await fetch("/registrarServicio", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombre,
+            costo,
+            descripcion,
+          }),
+        });
+        if (res.status === 400 || !res) {
+          window.alert("Ocurrió un error");
+        } else {
+          window.alert("Registrado con exito");
+          cargarServicios();
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
   };
@@ -339,7 +597,7 @@ export default function PanelAdministradorPage() {
             </button>
 
             <button
-              onClick={cargarInternos}
+              onClick={cargarServicios}
               className="nav-link"
               id="nav-servicios-tab"
               data-bs-toggle="tab"
@@ -418,7 +676,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">CALIFICACION</th>
                 </tr>
               </thead>
-              <tbody id="tblCitas"></tbody>
+              <tbody onClick={citasTabla} id="tblCitas"></tbody>
             </table>
             <hr></hr>
           </div>
@@ -437,12 +695,21 @@ export default function PanelAdministradorPage() {
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
                   <th scope="col">E-MAIL</th>
+                  <th scope="col">SERVICIOS</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
-              <tbody id="tblInternos"></tbody>
+              <tbody onClick={internosTabla} id="tblInternos"></tbody>
             </table>
             <hr></hr>
+            <button
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearInterno"
+              type="button"
+              className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
+            >
+              CREAR INTERNO
+            </button>
           </div>
 
           <div
@@ -464,6 +731,14 @@ export default function PanelAdministradorPage() {
               <tbody id="tblServicios"></tbody>
             </table>
             <hr></hr>
+            <button
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearServicio"
+              type="button"
+              className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
+            >
+              CREAR SERVICIO
+            </button>
           </div>
 
           <div
@@ -501,7 +776,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">#</th>
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
-                  <th scope="col">ROLE</th>
+                  <th scope="col">E-MAIL</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
@@ -520,14 +795,7 @@ export default function PanelAdministradorPage() {
           </div>
         </div>
       </div>
-      <button
-        data-bs-toggle="modal"
-        data-bs-target="#modalCrearInterno"
-        type="button"
-        className="btn btn-info ms-auto px-4 rounded-pill btn-lg btnFlotantes"
-      >
-        CREAR INTERNO
-      </button>
+
       <form onSubmit={admCrearInterno} method="POST">
         <div
           className="modal fade"
@@ -585,6 +853,7 @@ export default function PanelAdministradorPage() {
                         <option value="0">CEDULA</option>
                       </select>
                     </div>
+
                     <div className="col">
                       <input
                         name="numero_documento"
@@ -690,6 +959,153 @@ export default function PanelAdministradorPage() {
           </div>
         </div>
       </form>
+
+      <form onSubmit={intCrearServicio} method="POST">
+        <div
+          className="modal fade"
+          id="modalCrearServicio"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header modalHead">
+                <h5 className="modal-title" id="exampleModalLabel">
+                  CREAR SERVICIO
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <input
+                        name="nombre"
+                        value={servicio.nombre}
+                        onChange={handleInput}
+                        type="text"
+                        className="form-control"
+                        placeholder="Nombre"
+                        autoFocus
+                        maxLength="150"
+                      />
+                    </div>
+                    <div className="col">
+                      <input
+                        name="costo"
+                        value={servicio.costo}
+                        onChange={handleInput}
+                        type="number"
+                        className="form-control"
+                        placeholder="Costo"
+                        required
+                        maxLength="150"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <textarea
+                        name="descripcion"
+                        value={servicio.descripcion}
+                        onChange={handleInput}
+                        className="form-control"
+                        rows="2"
+                        placeholder="Descripcion del servicio"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer modalFoot" align="center">
+                <div id="msgRegistro"></div>
+                <button
+                  id="regRegistrar"
+                  type="submit"
+                  className="btn btn-verde"
+                >
+                  ENVIAR REGISTRO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div
+        className="modal fade"
+        id="modalServiciosInternos"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header modalHead">
+              <h5 className="modal-title" id="exampleModalLabel">
+                ASIGNAR SERVICIOS
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <select
+                      id="seleccionarServicio"
+                      name="si_servicio_id"
+                      value={internoServicios.si_servicio_id}
+                      onChange={handleInput}
+                      className="form-control"
+                    >
+                      <option value="0">--SELECCIONAR SERVICIO--</option>
+                    </select>
+                  </div>
+
+                  <div className="col">
+                    <button
+                      onClick={agregarServicioInterno}
+                      className="btn btn-warning"
+                      type="button"
+                      role="tab"
+                      aria-controls="nav-citas"
+                      aria-selected="true"
+                    >
+                      AGREGAR SERVICIO
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <strong>SERVICIOS ASIGNADOS</strong>
+                <hr></hr>
+                <div className="row">
+                  <div
+                    onClick={eliminarServicioAsignado}
+                    id="serviciosAsignados"
+                    className="col"
+                  >
+                    No hay datos
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
