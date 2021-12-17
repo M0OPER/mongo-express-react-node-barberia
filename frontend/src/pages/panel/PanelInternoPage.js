@@ -226,8 +226,6 @@ export default function PanelInternoPage() {
     descripcion: "",
   });
 
-  
-
   const cargarServicios = async (event) => {
     try {
       const res = await fetch("/cargarServicios", {
@@ -324,6 +322,20 @@ export default function PanelInternoPage() {
               SERVICIOS -
               <FontAwesomeIcon icon="calendar-check" />
             </button>
+
+            <button
+              className="nav-link"
+              id="nav-reportes-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#nav-reportes"
+              type="button"
+              role="tab"
+              aria-controls="nav-reportes"
+              aria-selected="false"
+            >
+              REPORTES -
+              <FontAwesomeIcon icon="clipboard-list" />
+            </button>
           </div>
         </nav>
         <div className="tab-content" id="nav-tabContent">
@@ -394,6 +406,7 @@ export default function PanelInternoPage() {
               CREAR EMPLEADO
             </button>
           </div>
+
           <div
             className="tab-pane fade"
             id="nav-servicios"
@@ -417,6 +430,15 @@ export default function PanelInternoPage() {
               </tbody>
             </table>
             <hr></hr>
+          </div>
+
+          <div
+            className="tab-pane fade"
+            id="nav-reportes"
+            role="tabpanel"
+            aria-labelledby="nav-reportes-tab"
+          >
+            <h1>REPORTES</h1>
           </div>
         </div>
       </div>

@@ -20,6 +20,7 @@ const Externos = require("./models/externosTabla");
 const Servicios = require("./models/serviciosTabla");
 const ServiciosInternos = require("./models/serviciosInternosTabla");
 const Citas = require("./models/citasTabla");
+const Comentarios = require("./models/comentariosTabla");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -77,6 +78,43 @@ app.get("/auth", authenticate, (req, res) => {});
 app.get("/logout", async (req, res) => {
   res.clearCookie("jwt", { path: "/" });
   res.status(200).send("Sesion cerrada con exito");
+});
+
+app.post("/cargarDetallesUsuario", async (req, res) => {
+  try {
+    const tipo = req.body.tipo_usuario;
+    const id_usuario = req.body.id_usuario;
+    var datos = null;
+    if (tipo === "interno") {
+      datos = await Internos.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(id_usuario),
+          },
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "int_usuario_id",
+            foreignField: "_id",
+            as: "datosUsuario",
+          },
+        },
+      ]);
+    } else {
+      console.log("error");
+    }
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
 });
 
 //USUARIOS INTERNOS
@@ -147,8 +185,7 @@ app.post("/registrarInterno", async (req, res) => {
 app.post("/cargarEmpleados", async (req, res) => {
   try {
     const datos = await Usuarios.find(
-      { role: "empleado" },
-      "nombres apellidos numero_documento email estado"
+      { role: "empleado" }
     );
     if (datos) {
       res.status(200).json(datos);
@@ -427,6 +464,82 @@ app.post("/eliminarServicioInterno", async (req, res) => {
 
 //CITAS ----------------------------------------------------
 
+app.post("/cargarDetallesCita", async (req, res) => {
+  const cita = req.body.id_cita;
+  try {
+    const datos = await Citas.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(cita),
+        },
+      },
+      {
+        $lookup: {
+          from: "empleados",
+          localField: "cit_empleado_id",
+          foreignField: "_id",
+          as: "empleado",
+        },
+      },
+      {
+        $unwind: "$empleado",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "empleado.emp_usuario_id",
+          foreignField: "_id",
+          as: "datosEmpleado",
+        },
+      },
+      {
+        $lookup: {
+          from: "externos",
+          localField: "cit_externo_id",
+          foreignField: "_id",
+          as: "externo",
+        },
+      },
+      {
+        $unwind: "$externo",
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "externo.ext_usuario_id",
+          foreignField: "_id",
+          as: "datosExterno",
+        },
+      },
+      {
+        $lookup: {
+          from: "servicios",
+          localField: "empleado.emp_servicio_id",
+          foreignField: "_id",
+          as: "datosServicio",
+        },
+      },
+      {
+        $lookup: {
+          from: "comentarios",
+          localField: "_id",
+          foreignField: "com_cita_id",
+          as: "datosComentarios",
+        },
+      },
+    ]);
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
 app.post("/cargarCitas", async (req, res) => {
   try {
     const datos = await Citas.aggregate([
@@ -477,7 +590,6 @@ app.post("/cargarCitas", async (req, res) => {
         },
       },
     ]);
-
     if (datos) {
       res.status(200).json(datos);
     } else {
@@ -561,6 +673,7 @@ app.post("/registrarCita", async (req, res) => {
       cit_empleado_id: empleado,
       cit_fecha: fecha,
       cit_estado: "espera",
+      cit_calificacion: "por",
     });
 
     const created = await createCita.save();

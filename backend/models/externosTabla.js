@@ -5,10 +5,6 @@ const externosTabla = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
-  ext_servicio_id: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-  },
 });
 
 externosTabla.pre("save", async function (next) {

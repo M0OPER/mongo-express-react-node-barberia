@@ -1,6 +1,7 @@
 /* eslint-disable no-multi-str */
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+//import TablaCitasAdministrador from "./components/TablaCitasAdministrador";
 
 export default function PanelAdministradorPage() {
   const handleInput = (event) => {
@@ -15,14 +16,62 @@ export default function PanelAdministradorPage() {
 
   const citasTabla = (event) => {
     try {
-      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
-      if (tipoBoton === "detalles") {
-        alert(event.target.attributes.getNamedItem("idcita").value);
-      } else if (tipoBoton === "calificacion") {
-        alert(event.target.attributes.getNamedItem("idcalificacion").value);
-      }
+      cargarDetallesCita(event.target.attributes.getNamedItem("idcita").value);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const cargarDetallesCita = async (cita) => {
+    const id_cita = cita;
+    try {
+      const res = await fetch("/cargarDetallesCita", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_cita,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay detalles");
+      } else if (res.status === 404) {
+        window.alert("No hay detalles");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        var comentarios = "";
+        for (
+          let index = 0;
+          index < response[0]["datosComentarios"].length;
+          index++
+        ) {
+          comentarios +=
+            '<div class="card-header"><p> * ' +
+            response[0]["datosComentarios"][index].com_texto +
+            "</p></div>";
+        }
+        document.getElementById("comentarios").innerHTML = comentarios;
+        document.getElementById("externo").value =
+          response[0]["datosExterno"][0].nombres +
+          " " +
+          response[0]["datosExterno"][0].apellidos;
+        document.getElementById("empleado").value =
+          response[0]["datosEmpleado"][0].nombres +
+          " " +
+          response[0]["datosEmpleado"][0].apellidos;
+        document.getElementById("servicio").value =
+          "$" +
+          response[0]["datosServicio"][0].ser_costo +
+          " " +
+          response[0]["datosServicio"][0].ser_nombre;
+        document.getElementById("fecha").value =
+          response[0].cit_fecha.substring(0, 10);
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -63,7 +112,7 @@ export default function PanelAdministradorPage() {
             <td class='text-uppercase fw-bold'>" +
             response[index].cit_estado +
             "</td> \
-            <td><button tipoboton='detalles' idcita='" +
+            <td><button data-bs-toggle='modal' data-bs-target='#modalDetallesCita' tipoboton='detalles' idcita='" +
             response[index]["_id"] +
             "' type='button' class='btn btn-info'>VER DETALLES</button></td> \
             <td><button tipoboton='calificacion' idcalificacion='cal2324' type='button' class='btn btn-warning text-uppercase fw-bold'>" +
@@ -111,11 +160,54 @@ export default function PanelAdministradorPage() {
           si_interno_id:
             event.target.attributes.getNamedItem("idinterno").value,
         });
-      } else if (tipoBoton === "onOff") {
-        alert(event.target.attributes.getNamedItem("idinterno").value);
+      } else if (tipoBoton === "detallesInterno") {
+        cargarDetallesUsuario(
+          "interno",
+          event.target.attributes.getNamedItem("idinterno").value
+        );
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const cargarDetallesUsuario = async (tipo, interno) => {
+    const tipo_usuario = tipo;
+    const id_usuario = interno;
+    try {
+      const res = await fetch("/cargarDetallesUsuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tipo_usuario,
+          id_usuario,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay servicios");
+      } else if (res.status === 404) {
+        window.alert("No hay servicios");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        document.getElementById("nombres").value =
+          response[0]["datosUsuario"][0].nombres;
+          document.getElementById("apellidos").value =
+          response[0]["datosUsuario"][0].apellidos;
+          document.getElementById("numero_documento").value =
+          response[0]["datosUsuario"][0].numero_documento;
+          document.getElementById("email").value =
+          response[0]["datosUsuario"][0].email;
+          document.getElementById("telefono").value =
+          response[0]["datosUsuario"][0].telefono;
+          document.getElementById("direccion").value =
+          response[0]["datosUsuario"][0].direccion;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -133,7 +225,6 @@ export default function PanelAdministradorPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
         var servicios = "<option value='0'>--SELECCIONAR SERVICIO--</option>";
         for (let index = 0; index < response.length; index++) {
           servicios +=
@@ -172,7 +263,6 @@ export default function PanelAdministradorPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
         var serviciosAsignados = "";
         for (let index = 0; index < response.length; index++) {
           serviciosAsignados +=
@@ -279,9 +369,12 @@ export default function PanelAdministradorPage() {
             <td>" +
             response[index]["datosUsuario"][0].email +
             '</td> \
-          <td><button tipoboton="detallesServicios" data-bs-toggle="modal" data-bs-target="#modalServiciosInternos" idinterno=' +
+          <td><button tipoboton="detallesInterno" data-bs-toggle="modal" data-bs-target="#modalDetallesUsuario" idinterno=' +
             response[index]["_id"] +
-            ' type="button" class="btn btn-info detallesServicio">VER DETALLES</button></td>';
+            ' type="button" class="btn btn-warning">INFORMACION</button></td> \
+            <td><button tipoboton="detallesServicios" data-bs-toggle="modal" data-bs-target="#modalServiciosInternos" idinterno=' +
+            response[index]["_id"] +
+            ' type="button" class="btn btn-info">VER DETALLES</button></td>';
           if (response[index]["datosUsuario"][0].estado === "activo") {
             internos +=
               '<td><button idusuario="' +
@@ -379,7 +472,6 @@ export default function PanelAdministradorPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response);
         var servicios = "";
         for (let index = 0; index < response.length; index++) {
           servicios +=
@@ -392,6 +484,8 @@ export default function PanelAdministradorPage() {
             "</td> \
           <td>" +
             response[index]["ser_costo"] +
+            "</td><td>" +
+            response[index]["ser_descripcion"] +
             "</td>";
           if (response[index]["ser_estado"] === "activo") {
             servicios +=
@@ -462,6 +556,7 @@ export default function PanelAdministradorPage() {
         window.alert("No hay empleados");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response)
         var empleados = "";
         for (let index = 0; index < response.length; index++) {
           empleados +=
@@ -477,19 +572,22 @@ export default function PanelAdministradorPage() {
           <td>" +
             response[index]["numero_documento"] +
             "</td> \
-          <td>" +
+            <td>" +
             response[index]["email"] +
-            "</td>";
+            '</td> \
+          <td><button tipoboton="detallesEmpleado" data-bs-toggle="modal" data-bs-target="#modalDetallesUsuario" idempleado=' +
+            response[index]["_id"] +
+            ' type="button" class="btn btn-warning">INFORMACION</button></td>';
           if (response[index]["estado"] === "activo") {
             empleados +=
-              '<td><button idusuario="' +
+              '<td><button idempleado="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+              '" type="button" class="btn btn-success">ACTIVO</button></td>';
           } else if (response[index]["estado"] === "inactivo") {
             empleados +=
-              '<td><button idusuario="' +
+              '<td><button idempleado="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+              '" type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
           empleados += "</tr>";
         }
@@ -640,20 +738,6 @@ export default function PanelAdministradorPage() {
               CLIENTES -
               <FontAwesomeIcon icon="user-tag" />
             </button>
-
-            <button
-              className="nav-link"
-              id="nav-reportes-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#nav-reportes"
-              type="button"
-              role="tab"
-              aria-controls="nav-reportes"
-              aria-selected="false"
-            >
-              REPORTES -
-              <FontAwesomeIcon icon="clipboard-list" />
-            </button>
           </div>
         </nav>
         <div className="tab-content" id="nav-tabContent">
@@ -695,6 +779,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
                   <th scope="col">E-MAIL</th>
+                  <th scope="col">DETALLES USUARIO</th>
                   <th scope="col">SERVICIOS</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
@@ -725,6 +810,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">#</th>
                   <th scope="col">NOMBRE</th>
                   <th scope="col">COSTO</th>
+                  <th scope="col">DESCRIPCION</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
@@ -755,6 +841,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
                   <th scope="col">EMAIL</th>
+                  <th scope="col">DETALLES USUARIO</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
@@ -783,15 +870,6 @@ export default function PanelAdministradorPage() {
               <tbody id="tblClientes"></tbody>
             </table>
             <hr></hr>
-          </div>
-
-          <div
-            className="tab-pane fade"
-            id="nav-reportes"
-            role="tabpanel"
-            aria-labelledby="nav-reportes-tab"
-          >
-            <h1>REPORTES</h1>
           </div>
         </div>
       </div>
@@ -1099,6 +1177,211 @@ export default function PanelAdministradorPage() {
                     className="col"
                   >
                     No hay datos
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="modalDetallesCita"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header modalHead">
+              <h5 className="modal-title" id="exampleModalLabel">
+                DETALLES SERVICIO
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="externo"
+                      type="text"
+                      className="form-control"
+                      placeholder="EXTERNO"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="empleado"
+                      type="text"
+                      className="form-control"
+                      placeholder="EMPLEADO"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="servicio"
+                      type="text"
+                      className="form-control"
+                      placeholder="SERVICIO"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="fecha"
+                      name="fecha"
+                      type="date"
+                      className="form-control"
+                      placeholder="FECHA"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <strong>COMENTARIOS</strong>
+                <div className="row">
+                  <div id="comentarios" className="col">
+                    .
+                  </div>
+                </div>
+                <small className="form-text text-muted">
+                  Comentarios generados
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="modal fade"
+        id="modalDetallesUsuario"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header modalHead">
+              <h5 className="modal-title" id="exampleModalLabel">
+                DETALLES USUARIO
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="nombres"
+                      type="text"
+                      className="form-control"
+                      placeholder="Nombres"
+                      autoFocus
+                      maxLength="150"
+                      disabled
+                    />
+                  </div>
+                  <div className="col">
+                    <input
+                      id="apellidos"
+                      type="text"
+                      className="form-control"
+                      placeholder="Apellidos"
+                      required
+                      maxLength="150"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <select className="form-control" disabled>
+                      <option value="0">CEDULA</option>
+                    </select>
+                  </div>
+
+                  <div className="col">
+                    <input
+                      id="numero_documento"
+                      type="text"
+                      className="form-control"
+                      placeholder="Numero de documento"
+                      required
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="email"
+                      type="text"
+                      className="form-control"
+                      placeholder="Correo electronico"
+                      autoComplete="off"
+                      maxLength="450"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="telefono"
+                      type="text"
+                      className="form-control"
+                      placeholder="Telefono"
+                      disabled
+                    />
+                  </div>
+                  <div className="col">
+                    <input
+                      id="direccion"
+                      type="text"
+                      className="form-control"
+                      placeholder="Direccion"
+                      maxLength="450"
+                      disabled
+                    />
                   </div>
                 </div>
               </div>
