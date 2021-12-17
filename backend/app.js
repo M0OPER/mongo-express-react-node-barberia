@@ -85,6 +85,7 @@ app.post("/cargarDetallesUsuario", async (req, res) => {
     const tipo = req.body.tipo_usuario;
     const id_usuario = req.body.id_usuario;
     var datos = null;
+    console.log(id_usuario);
     if (tipo === "interno") {
       datos = await Internos.aggregate([
         {
@@ -101,9 +102,62 @@ app.post("/cargarDetallesUsuario", async (req, res) => {
           },
         },
       ]);
+    } else if (tipo === "empleado") {
+      datos = await Empleados.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(id_usuario),
+          },
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "emp_usuario_id",
+            foreignField: "_id",
+            as: "datosUsuario",
+          },
+        },
+      ]);
+    } else if (tipo === "cliente") {
+      datos = await Externos.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(id_usuario),
+          },
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "ext_usuario_id",
+            foreignField: "_id",
+            as: "datosUsuario",
+          },
+        },
+      ]);
     } else {
       console.log("error");
     }
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
+app.post("/onOffUsuario", async (req, res) => {
+  try {
+    const estado = req.body.estado;
+    const idprincipal = req.body.idprincipal;
+    const filter = { _id: idprincipal };
+    const update = { estado: estado };
+
+    let datos = await Usuarios.findOneAndUpdate(filter, update);
 
     console.log(datos);
     if (datos) {
@@ -184,9 +238,16 @@ app.post("/registrarInterno", async (req, res) => {
 
 app.post("/cargarEmpleados", async (req, res) => {
   try {
-    const datos = await Usuarios.find(
-      { role: "empleado" }
-    );
+    const datos = await Empleados.aggregate([
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "emp_usuario_id",
+          foreignField: "_id",
+          as: "datosUsuario",
+        },
+      },
+    ]);
     if (datos) {
       res.status(200).json(datos);
     } else {
@@ -285,10 +346,16 @@ app.post("/seleccionarEmpleado", async (req, res) => {
 
 app.post("/cargarClientes", async (req, res) => {
   try {
-    const datos = await Usuarios.find(
-      { role: "externo" },
-      "nombres apellidos numero_documento email estado"
-    );
+    const datos = await Externos.aggregate([
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "ext_usuario_id",
+          foreignField: "_id",
+          as: "datosUsuario",
+        },
+      },
+    ]);
     if (datos) {
       res.status(200).json(datos);
     } else {

@@ -165,9 +165,53 @@ export default function PanelAdministradorPage() {
           "interno",
           event.target.attributes.getNamedItem("idinterno").value
         );
+      } else if (tipoBoton === "on") {
+        onOffUsuario(
+          "inactivo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO DESACTIVADO");
+      } else if (tipoBoton === "off") {
+        onOffUsuario(
+          "activo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO ACTIVADO");
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const onOffUsuario = async (tipo, id) => {
+    const estado = tipo;
+    const idprincipal = id;
+    try {
+      const res = await fetch("/onOffUsuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          estado,
+          idprincipal,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("Error");
+      } else if (res.status === 404) {
+        window.alert("Error");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+        cargarInternos();
+        cargarEmpleados();
+        cargarClientes();
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -186,22 +230,23 @@ export default function PanelAdministradorPage() {
         }),
       });
       if (res.status === 400 || !res) {
-        window.alert("No hay servicios");
+        window.alert("No hay datos");
       } else if (res.status === 404) {
-        window.alert("No hay servicios");
+        window.alert("No hay datos");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         document.getElementById("nombres").value =
           response[0]["datosUsuario"][0].nombres;
-          document.getElementById("apellidos").value =
+        document.getElementById("apellidos").value =
           response[0]["datosUsuario"][0].apellidos;
-          document.getElementById("numero_documento").value =
+        document.getElementById("numero_documento").value =
           response[0]["datosUsuario"][0].numero_documento;
-          document.getElementById("email").value =
+        document.getElementById("email").value =
           response[0]["datosUsuario"][0].email;
-          document.getElementById("telefono").value =
+        document.getElementById("telefono").value =
           response[0]["datosUsuario"][0].telefono;
-          document.getElementById("direccion").value =
+        document.getElementById("direccion").value =
           response[0]["datosUsuario"][0].direccion;
       } else {
         window.alert("Error dentro del servidor");
@@ -377,14 +422,18 @@ export default function PanelAdministradorPage() {
             ' type="button" class="btn btn-info">VER DETALLES</button></td>';
           if (response[index]["datosUsuario"][0].estado === "activo") {
             internos +=
-              '<td><button idusuario="' +
+              '<td><button idprincipal="' +
               response[index]["datosUsuario"][0]._id +
-              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
+              '" tipoboton="on" idusuario="' +
+              response[index]["datosUsuario"][0]._id +
+              '" type="button" class="btn btn-success">ACTIVO</button></td>';
           } else if (response[index]["datosUsuario"][0].estado === "inactivo") {
             internos +=
-              '<td><button idusuario="' +
+              '<td><button idprincipal="' +
               response[index]["datosUsuario"][0]._id +
-              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+              '" tipoboton="off" idusuario="' +
+              response[index]["datosUsuario"][0]._id +
+              '" type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
           internos += "</tr>";
         }
@@ -541,6 +590,34 @@ export default function PanelAdministradorPage() {
 
   //EMPLEADOS
 
+  const empleadosTabla = (event) => {
+    try {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "onOff") {
+        //cargarSeleccionarServicio();
+      } else if (tipoBoton === "detallesEmpleado") {
+        cargarDetallesUsuario(
+          "empleado",
+          event.target.attributes.getNamedItem("idempleado").value
+        );
+      } else if (tipoBoton === "on") {
+        onOffUsuario(
+          "inactivo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO DESACTIVADO");
+      } else if (tipoBoton === "off") {
+        onOffUsuario(
+          "activo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO ACTIVADO");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const cargarEmpleados = async (event) => {
     //event.preventDefault();
     try {
@@ -556,7 +633,7 @@ export default function PanelAdministradorPage() {
         window.alert("No hay empleados");
       } else if (res.status === 200) {
         const response = await res.json();
-        console.log(response)
+        console.log(response);
         var empleados = "";
         for (let index = 0; index < response.length; index++) {
           empleados +=
@@ -565,27 +642,31 @@ export default function PanelAdministradorPage() {
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["nombres"] +
+            response[index]["datosUsuario"][0].nombres +
             " " +
-            response[index]["apellidos"] +
+            response[index]["datosUsuario"][0].apellidos +
             "</td> \
           <td>" +
-            response[index]["numero_documento"] +
+            response[index]["datosUsuario"][0].numero_documento +
             "</td> \
             <td>" +
-            response[index]["email"] +
+            response[index]["datosUsuario"][0].email +
             '</td> \
           <td><button tipoboton="detallesEmpleado" data-bs-toggle="modal" data-bs-target="#modalDetallesUsuario" idempleado=' +
             response[index]["_id"] +
             ' type="button" class="btn btn-warning">INFORMACION</button></td>';
-          if (response[index]["estado"] === "activo") {
+          if (response[index]["datosUsuario"][0].estado === "activo") {
             empleados +=
-              '<td><button idempleado="' +
+              '<td><button tipoboton="on" idprincipal="' +
+              response[index]["datosUsuario"][0]._id +
+              '" idempleado="' +
               response[index]["_id"] +
               '" type="button" class="btn btn-success">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
+          } else if (response[index]["datosUsuario"][0].estado === "inactivo") {
             empleados +=
-              '<td><button idempleado="' +
+              '<td><button tipoboton="off" idprincipal="' +
+              response[index]["datosUsuario"][0]._id +
+              '" idempleado="' +
               response[index]["_id"] +
               '" type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
@@ -602,6 +683,34 @@ export default function PanelAdministradorPage() {
 
   //CLIENTES
 
+  const clientesTabla = (event) => {
+    try {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "onOff") {
+        //cargarSeleccionarServicio();
+      } else if (tipoBoton === "detallesCliente") {
+        cargarDetallesUsuario(
+          "cliente",
+          event.target.attributes.getNamedItem("idcliente").value
+        );
+      } else if (tipoBoton === "on") {
+        onOffUsuario(
+          "inactivo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO DESACTIVADO");
+      } else if (tipoBoton === "off") {
+        onOffUsuario(
+          "activo",
+          event.target.attributes.getNamedItem("idprincipal").value
+        );
+        alert("USUARIO ACTIVADO");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const cargarClientes = async (event) => {
     //event.preventDefault();
     try {
@@ -617,6 +726,7 @@ export default function PanelAdministradorPage() {
         window.alert("No hay clientes");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var clientes = "";
         for (let index = 0; index < response.length; index++) {
           clientes +=
@@ -625,26 +735,33 @@ export default function PanelAdministradorPage() {
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["nombres"] +
+            response[index]["datosUsuario"][0].nombres +
             " " +
-            response[index]["apellidos"] +
+            response[index]["datosUsuario"][0].apellidos +
             "</td> \
           <td>" +
-            response[index]["numero_documento"] +
+            response[index]["datosUsuario"][0].numero_documento +
             "</td> \
-          <td>" +
-            response[index]["email"] +
-            "</td>";
-          if (response[index]["estado"] === "activo") {
+            <td>" +
+            response[index]["datosUsuario"][0].email +
+            '</td> \
+          <td><button tipoboton="detallesCliente" data-bs-toggle="modal" data-bs-target="#modalDetallesUsuario" idcliente=' +
+            response[index]["_id"] +
+            ' type="button" class="btn btn-warning">INFORMACION</button></td>';
+          if (response[index]["datosUsuario"][0].estado === "activo") {
             clientes +=
-              '<td><button idusuario="' +
+              '<td><button idprincipal="' +
+              response[index]["datosUsuario"][0]._id +
+              '" tipoboton="on" idcliente="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
+              '" type="button" class="btn btn-success">ACTIVO</button></td>';
+          } else if (response[index]["datosUsuario"][0].estado === "inactivo") {
             clientes +=
-              '<td><button idusuario="' +
+              '<td><button idprincipal="' +
+              response[index]["datosUsuario"][0]._id +
+              '" tipoboton="off" idcliente="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
+              '" type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
           clientes += "</tr>";
         }
@@ -845,7 +962,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
-              <tbody id="tblEmpleados"></tbody>
+              <tbody onClick={empleadosTabla} id="tblEmpleados"></tbody>
             </table>
             <hr></hr>
           </div>
@@ -864,10 +981,11 @@ export default function PanelAdministradorPage() {
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
                   <th scope="col">E-MAIL</th>
+                  <th scope="col">DETALLES USUARIO</th>
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
-              <tbody id="tblClientes"></tbody>
+              <tbody onClick={clientesTabla} id="tblClientes"></tbody>
             </table>
             <hr></hr>
           </div>
