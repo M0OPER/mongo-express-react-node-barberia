@@ -106,7 +106,7 @@ export default function PanelAdministradorPage() {
             " " +
             response[index]["datosExterno"][0].apellidos +
             "</td> \
-          <td>" +
+          <td>$" + response[index]["datosServicio"][0].ser_costo + " " +
             response[index]["datosServicio"][0].ser_nombre +
             "</td> \
             <td class='text-uppercase fw-bold'>" +
@@ -503,9 +503,58 @@ export default function PanelAdministradorPage() {
 
   const [servicio, setServicio] = useState({
     nombre: "",
-    costo: "",
-    descripcion: "",
   });
+
+  const onOffServicio = async (tipo, id) => {
+    const estado = tipo;
+    const idservicio = id;
+    try {
+      const res = await fetch("/onOffServicio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          estado,
+          idservicio,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("Error");
+      } else if (res.status === 404) {
+        window.alert("Error");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        console.log(response);
+        cargarServicios();
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const serviciosTabla = (event) => {
+    try {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "on") {
+        onOffServicio(
+          "inactivo",
+          event.target.attributes.getNamedItem("idservicio").value
+        );
+        alert("Servicio desactivado");
+      } else if (tipoBoton === "off") {
+        onOffServicio(
+          "activo",
+          event.target.attributes.getNamedItem("idservicio").value
+        );
+        alert("Servicio activado");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const cargarServicios = async (event) => {
     try {
@@ -538,14 +587,14 @@ export default function PanelAdministradorPage() {
             "</td>";
           if (response[index]["ser_estado"] === "activo") {
             servicios +=
-              '<td><button idservicio="' +
+              '<td><button tipoboton="on" idservicio="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-success bloquearServicio">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
+              '" type="button" class="btn btn-success">ACTIVO</button></td>';
+          } else if (response[index]["ser_estado"] === "inactivo") {
             servicios +=
-              '<td><button idservicio="' +
+              '<td><button tipoboton="off" idservicio="' +
               response[index]["_id"] +
-              '" type="button" class="btn btn-danger desbloquearServicio">INACTIVO</button></td>';
+              '" type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
           servicios += "</tr>";
         }
@@ -560,8 +609,8 @@ export default function PanelAdministradorPage() {
 
   const intCrearServicio = async (event) => {
     event.preventDefault();
-    const { nombre, costo, descripcion } = servicio;
-    if (nombre === "" || costo === "") {
+    const { nombre } = servicio;
+    if (nombre === "") {
       alert("Por favor rellene todos los campos");
     } else {
       try {
@@ -572,8 +621,6 @@ export default function PanelAdministradorPage() {
           },
           body: JSON.stringify({
             nombre,
-            costo,
-            descripcion,
           }),
         });
         if (res.status === 400 || !res) {
@@ -931,7 +978,7 @@ export default function PanelAdministradorPage() {
                   <th scope="col">ON / OFF</th>
                 </tr>
               </thead>
-              <tbody id="tblServicios"></tbody>
+              <tbody onClick={serviciosTabla} id="tblServicios"></tbody>
             </table>
             <hr></hr>
             <button
@@ -1190,33 +1237,6 @@ export default function PanelAdministradorPage() {
                         autoFocus
                         maxLength="150"
                       />
-                    </div>
-                    <div className="col">
-                      <input
-                        name="costo"
-                        value={servicio.costo}
-                        onChange={handleInput}
-                        type="number"
-                        className="form-control"
-                        placeholder="Costo"
-                        required
-                        maxLength="150"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <div className="row">
-                    <div className="col">
-                      <textarea
-                        name="descripcion"
-                        value={servicio.descripcion}
-                        onChange={handleInput}
-                        className="form-control"
-                        rows="2"
-                        placeholder="Descripcion del servicio"
-                      ></textarea>
                     </div>
                   </div>
                 </div>

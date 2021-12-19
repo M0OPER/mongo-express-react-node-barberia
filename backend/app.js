@@ -406,6 +406,27 @@ app.post("/registrarExterno", async (req, res) => {
 
 //SERVICIOS -----------------------------------------------
 
+app.post("/onOffServicio", async (req, res) => {
+  try {
+    const estado = req.body.estado;
+    const idservicio = req.body.idservicio;
+    const filter = { _id: idservicio };
+    const update = { ser_estado: estado };
+
+    let datos = await Servicios.findOneAndUpdate(filter, update);
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
 app.post("/cargarServicios", async (req, res) => {
   try {
     const datos = await Servicios.find();
@@ -422,13 +443,13 @@ app.post("/cargarServicios", async (req, res) => {
 app.post("/registrarServicio", async (req, res) => {
   try {
     const nombre = req.body.nombre;
-    const costo = req.body.costo;
-    const descripcion = req.body.descripcion;
+    //const costo = req.body.costo;
+    //const descripcion = req.body.descripcion;
 
     const createServicio = new Servicios({
       ser_nombre: nombre,
-      ser_costo: costo,
-      ser_descripcion: descripcion,
+      ser_costo: 0,
+      ser_descripcion: "Por configurar",
       ser_estado: "activo",
     });
 
@@ -437,8 +458,9 @@ app.post("/registrarServicio", async (req, res) => {
     res.status(200).send("HECHO");
   } catch (error) {
     res.status(400).send(error);
+    console.log(error)
   }
-});
+}); 
 
 //SERVICIOS INTERNOS ----------------------------------------
 app.post("/cargarServiciosAsignados", async (req, res) => {

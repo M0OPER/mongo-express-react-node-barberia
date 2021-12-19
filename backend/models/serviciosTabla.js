@@ -7,7 +7,7 @@ const serviciosTabla = new mongoose.Schema({
   },
   ser_costo: {
     type: Number,
-    required: true,
+    required: false,
   },
   ser_descripcion: {
     type: String,

@@ -14,7 +14,6 @@ const TablaCitasAdministrador = () => {
         console.log(data);
         setCitas(data);
       });
-      alert("hola")
   }, []);
 
   const handleButton = () => {
