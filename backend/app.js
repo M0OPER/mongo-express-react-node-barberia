@@ -20,7 +20,8 @@ const Externos = require("./models/externosTabla");
 const Servicios = require("./models/serviciosTabla");
 const ServiciosInternos = require("./models/serviciosInternosTabla");
 const Citas = require("./models/citasTabla");
-const Comentarios = require("./models/comentariosTabla");
+//const Comentarios = require("./models/comentariosTabla");
+const Horarios = require("./models/horariosTabla");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -46,6 +47,9 @@ app.post("/login", async (req, res) => {
             int_usuario_id: user["_id"],
           });
         } else if (user["role"] === "empleado") {
+          datos = await Empleados.findOne({
+            emp_usuario_id: user["_id"],
+          });
         } else if (user["role"] === "externo") {
           datos = await Externos.findOne({
             ext_usuario_id: user["_id"],
@@ -298,7 +302,21 @@ app.post("/registrarEmpleado", async (req, res) => {
   }
 });
 
-//EMPLEADOS HACE PARTE DE CITAS
+//EMPLEADOS Y HORARIO HACE PARTE DE CITAS
+
+app.post("/cargarHorario", async (req, res) => {
+  try {
+    const datos = await Horarios.find();
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay horario");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
 
 app.post("/seleccionarEmpleado", async (req, res) => {
   const servicio = req.body.servicio;
@@ -327,6 +345,54 @@ app.post("/seleccionarEmpleado", async (req, res) => {
           localField: "empleados.emp_usuario_id",
           foreignField: "_id",
           as: "datosEmpleado",
+        },
+      },
+    ]);
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/seleccionarHorario", async (req, res) => {
+  const empleado = req.body.empleado;
+  const fecha = req.body.fecha;
+  console.log(empleado + fecha);
+  try {
+    const datos = await Empleados.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(empleado),
+        },
+      },
+      {
+        $lookup: {
+          from: "citas",
+          localField: "_id",
+          foreignField: "cit_empleado_id",
+          as: "citas",
+        },
+      },
+      {
+        $unwind: "$citas",
+      },
+      {
+        $lookup: {
+          from: "horarios",
+          localField: "citas.cit_horario_id",
+          foreignField: "_id",
+          as: "datosCita",
+        },
+      },
+      {
+        $match: {
+          "citas.cit_fecha": fecha,
         },
       },
     ]);
@@ -450,6 +516,7 @@ app.post("/registrarServicio", async (req, res) => {
       ser_nombre: nombre,
       ser_costo: 0,
       ser_descripcion: "Por configurar",
+      ser_duracion: "0",
       ser_estado: "activo",
     });
 
@@ -458,11 +525,54 @@ app.post("/registrarServicio", async (req, res) => {
     res.status(200).send("HECHO");
   } catch (error) {
     res.status(400).send(error);
-    console.log(error)
+    console.log(error);
   }
-}); 
+});
 
 //SERVICIOS INTERNOS ----------------------------------------
+
+app.post("/cargarServiciosInternos", async (req, res) => {
+  const interno = req.body.id_interno;
+  console.log("asignado => " + interno);
+  try {
+    //const datos = await ServiciosInternos.find({ si_interno_id: interno });
+    const datos = await Internos.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(interno),
+        },
+      },
+      {
+        $lookup: {
+          from: "serviciosinternos",
+          localField: "_id",
+          foreignField: "si_interno_id",
+          as: "datosServicios",
+        },
+      },
+      {
+        $unwind: "$datosServicios",
+      },
+      {
+        $lookup: {
+          from: "servicios",
+          localField: "datosServicios.si_servicio_id",
+          foreignField: "_id",
+          as: "datoServicio",
+        },
+      },
+    ]);
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios asignados");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 app.post("/cargarServiciosAsignados", async (req, res) => {
   const interno = req.body.id_interno;
   console.log("asignado => " + interno);
@@ -738,7 +848,6 @@ app.post("/cargarCitasExterno", async (req, res) => {
       },
     ]);
 
-    console.log(datos);
     //console.log(datosCitas);
     if (datos) {
       res.status(200).json(datos);
@@ -756,13 +865,15 @@ app.post("/registrarCita", async (req, res) => {
     const externo = req.body.externo;
     const empleado = req.body.empleado;
     const fecha = req.body.fecha;
+    const horario = req.body.horario;
 
     const createCita = new Citas({
       cit_externo_id: externo,
       cit_empleado_id: empleado,
       cit_fecha: fecha,
+      cit_horario_id: horario,
       cit_estado: "espera",
-      cit_calificacion: "por",
+      cit_calificacion: "por calificar",
     });
 
     const created = await createCita.save();

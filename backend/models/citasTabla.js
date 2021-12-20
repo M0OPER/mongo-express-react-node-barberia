@@ -10,7 +10,11 @@ const citasTabla = new mongoose.Schema({
     required: true,
   },
   cit_fecha: {
-    type: Date,
+    type: String,
+    required: true,
+  },
+  cit_horario_id: {
+    type: mongoose.Types.ObjectId,
     required: true,
   },
   cit_estado: {

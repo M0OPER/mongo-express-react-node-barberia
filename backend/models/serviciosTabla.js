@@ -13,6 +13,10 @@ const serviciosTabla = new mongoose.Schema({
     type: String,
     required: false,
   },
+  ser_duracion: {
+    type: Number,
+    required: true,
+  },
   ser_estado: {
     type: String,
     required: true,

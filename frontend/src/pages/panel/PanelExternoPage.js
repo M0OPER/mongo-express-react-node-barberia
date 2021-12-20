@@ -1,9 +1,33 @@
 /* eslint-disable no-multi-str */
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../auth/AuthContext";
 
 export default function PanelExternoPage() {
+  var today = new Date();
+  const fecha_hoy =
+    today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
   const { user } = useContext(AuthContext);
+
+  const [horas, setHoras] = useState([]);
+
+  useEffect(() => {
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    };
+    fetch("/cargarHorario", requestOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        let id_hora = [];
+        for (let index = 0; index < data.length; index++) {
+          id_hora.push({
+            id: data[index]["_id"],
+            hora: data[index]["hor_hora"],
+          });
+        }
+        setHoras(id_hora);
+      });
+  }, []);
 
   const handleInput = (event) => {
     let name = event.target.name;
@@ -18,6 +42,7 @@ export default function PanelExternoPage() {
     servicio: "",
     empleado: "",
     fecha: "",
+    hora: "",
   });
 
   const btnSolicitarServicio = async (event) => {
@@ -94,9 +119,61 @@ export default function PanelExternoPage() {
     }
   };
 
+  const seleccionarHorario = async (event) => {
+    event.preventDefault();
+    try {
+      const { empleado, fecha } = cita;
+      const res = await fetch("/seleccionarHorario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          empleado,
+          fecha,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        console.log("No hay servicio");
+      } else if (res.status === 404) {
+        console.log("No hay servicio");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        let horarios = [];
+        var horasDisponibles = [];
+        horasDisponibles = horas;
+        for (let index = 0; index < response.length; index++) {
+          horarios.push({
+            id: response[index]["datosCita"][0]._id,
+            hora: response[index]["datosCita"][0].hor_hora,
+          });
+        }
+        for (let index = 0; index < horarios.length; index++) {
+          var horasDisponibles = horasDisponibles.filter(function (id) {
+            return id.id !== horarios[index].id;
+          });
+        }
+        var selectHora = "<option value='0'>--SELECCIONAR HORA--</option>";
+        for (let index = 0; index < horasDisponibles.length; index++) {
+          selectHora +=
+            '<option value="' +
+            horasDisponibles[index].id +
+            '">' +
+            horasDisponibles[index].hora +
+            "</option>";
+        }
+        document.getElementById("seleccionarHora").innerHTML = selectHora;
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const extSolicitarServicio = async (event) => {
     event.preventDefault();
-    const { externo, empleado, fecha } = cita;
+    const { externo, empleado, fecha, horario } = cita;
     if (fecha === "") {
       alert("Por favor rellene todos los campos");
     } else {
@@ -110,6 +187,7 @@ export default function PanelExternoPage() {
             externo,
             empleado,
             fecha,
+            horario,
           }),
         });
         if (res.status === 400 || !res) {
@@ -273,7 +351,7 @@ export default function PanelExternoPage() {
                   <div className="row">
                     <div className="col">
                       <input
-                      value={user["name"]}
+                        value={user["name"]}
                         type="text"
                         className="form-control"
                         placeholder="Nombres"
@@ -321,6 +399,7 @@ export default function PanelExternoPage() {
                     <div className="col">
                       <input
                         name="fecha"
+                        min={fecha_hoy}
                         value={cita.fecha}
                         onChange={handleInput}
                         type="date"
@@ -328,9 +407,39 @@ export default function PanelExternoPage() {
                         placeholder="FECHA"
                       />
                     </div>
+                    <div className="col">
+                      <div className="d-grid gap-2">
+                        <button
+                          onClick={seleccionarHorario}
+                          className="btn btn-primary"
+                          type="button"
+                        >
+                          VERIFICAR
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <small className="form-text text-muted">
-                    Seleccione los empleados disponibles
+                    Presiona verificar para cargar horario disponible
+                  </small>
+                </div>
+
+                <div className="mb-3">
+                  <div className="row">
+                    <div className="col">
+                      <select
+                        id="seleccionarHora"
+                        name="horario"
+                        value={cita.horario}
+                        onChange={handleInput}
+                        className="form-control"
+                      >
+                        <option value="0">--SELECCIONAR HORARIO--</option>
+                      </select>
+                    </div>
+                  </div>
+                  <small className="form-text text-muted">
+                    Seleccione los empleados y horas disponibles
                   </small>
                 </div>
               </div>

@@ -1397,6 +1397,16 @@ export default function PanelAdministradorPage() {
                       disabled
                     />
                   </div>
+                  <div className="col">
+                    <input
+                      id="hora"
+                      name="hora"
+                      type="text"
+                      className="form-control"
+                      placeholder="HORA"
+                      disabled
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1411,6 +1421,7 @@ export default function PanelAdministradorPage() {
                   Comentarios generados
                 </small>
               </div>
+
             </div>
           </div>
         </div>

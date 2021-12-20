@@ -1,8 +1,10 @@
 /* eslint-disable no-multi-str */
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AuthContext } from "../../auth/AuthContext";
 
 export default function PanelInternoPage() {
+  const { user } = useContext(AuthContext);
   const handleInput = (event) => {
     let name = event.target.name;
     let value = event.target.value;
@@ -226,13 +228,30 @@ export default function PanelInternoPage() {
     descripcion: "",
   });
 
-  const cargarServicios = async (event) => {
+  const serviciosTabla = (event) => {
     try {
-      const res = await fetch("/cargarServicios", {
+      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
+      if (tipoBoton === "configurar") {
+        //cargarConfigurarServicio(
+        //event.target.attributes.getNamedItem("idservicio").value
+        //);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const cargarServicios = async (event) => {
+    const id_interno = user["user"];
+    try {
+      const res = await fetch("/cargarServiciosInternos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          id_interno,
+        }),
       });
       if (res.status === 400 || !res) {
         window.alert("No hay servicios");
@@ -240,6 +259,7 @@ export default function PanelInternoPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var servicios = "";
         for (let index = 0; index < response.length; index++) {
           servicios +=
@@ -248,22 +268,27 @@ export default function PanelInternoPage() {
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["ser_nombre"] +
+            response[index]["datoServicio"][0].ser_nombre +
             "</td> \
           <td>" +
-            response[index]["ser_costo"] +
+            response[index]["datoServicio"][0].ser_costo +
+            "</td>\
+            <td>" +
+            response[index]["datoServicio"][0].ser_descripcion +
             "</td>";
-          if (response[index]["ser_estado"] === "activo") {
+          if (response[index]["datoServicio"][0].ser_estado === "activo") {
             servicios +=
-              '<td><button idservicio="' +
-              response[index]["_id"] +
-              '" type="button" class="btn btn-success bloquearServicio">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
+              '<td><button type="button" class="btn btn-success">ACTIVO</button></td>';
+          } else if (
+            response[index]["datoServicio"][0].ser_estado === "inactivo"
+          ) {
             servicios +=
-              '<td><button idservicio="' +
-              response[index]["_id"] +
-              '" type="button" class="btn btn-danger desbloquearServicio">INACTIVO</button></td>';
+              '<td><button type="button" class="btn btn-danger">INACTIVO</button></td>';
           }
+          servicios +=
+            '<td scope="row"><button idservicio="' +
+            response[index]["datoServicio"][0]._id +
+            '" type="button" class="btn btn-info">VER DETALLES</button</td>';
           servicios += "</tr>";
         }
         document.getElementById("tblServicios").innerHTML = servicios;
@@ -420,10 +445,12 @@ export default function PanelInternoPage() {
                   <th scope="col">#</th>
                   <th scope="col">NOMBRE</th>
                   <th scope="col">COSTO</th>
-                  <th scope="col">ON / OFF</th>
+                  <th scope="col">DESCRIPCION</th>
+                  <th scope="col">ESTADO</th>
+                  <th scope="col">CONFIGURAR</th>
                 </tr>
               </thead>
-              <tbody id="tblServicios">
+              <tbody onClick={serviciosTabla} id="tblServicios">
                 <tr>
                   <th scope="row">NO HAY DATOS</th>
                 </tr>
