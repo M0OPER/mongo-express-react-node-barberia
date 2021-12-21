@@ -31,7 +31,8 @@ const General = () => {
         }),
       });
       if (res.status === 400 || !res) {
-        window.alert("Usuario o contraseña incorrecta");
+        const response = await res.json();
+        window.alert(response);
       } else if (res.status === 404) {
         window.alert("Pagina no encontrada");
       } else if (res.status === 200) {
@@ -107,9 +108,6 @@ const General = () => {
                 <div className="form-group form-check">
                   <div>
                     <a href="/registro">¿No se ha registrado en el sistema?</a>
-                  </div>
-                  <div>
-                    <a href="/recuperar_password">¿Olvidó su contraseña?</a>
                   </div>
                 </div>
               </div>

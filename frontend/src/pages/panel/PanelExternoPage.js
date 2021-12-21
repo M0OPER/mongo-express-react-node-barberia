@@ -5,7 +5,11 @@ import { AuthContext } from "../../auth/AuthContext";
 export default function PanelExternoPage() {
   var today = new Date();
   const fecha_hoy =
-    today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+    today.getFullYear() +
+    "-" +
+    (today.getMonth() + 1) +
+    "-" +
+    (today.getDate() + 1);
   const { user } = useContext(AuthContext);
 
   const [horas, setHoras] = useState([]);
@@ -60,6 +64,7 @@ export default function PanelExternoPage() {
         window.alert("No hay citas");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var servicios = "<option value='0'>--SELECCIONAR SERVICIO--</option>";
         for (let index = 0; index < response.length; index++) {
           servicios +=
@@ -173,7 +178,7 @@ export default function PanelExternoPage() {
 
   const extSolicitarServicio = async (event) => {
     event.preventDefault();
-    const { externo, empleado, fecha, horario } = cita;
+    const { externo, empleado, servicio, horario, fecha } = cita;
     if (fecha === "") {
       alert("Por favor rellene todos los campos");
     } else {
@@ -186,8 +191,9 @@ export default function PanelExternoPage() {
           body: JSON.stringify({
             externo,
             empleado,
-            fecha,
+            servicio,
             horario,
+            fecha,
           }),
         });
         if (res.status === 400 || !res) {

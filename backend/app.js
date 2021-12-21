@@ -37,35 +37,39 @@ app.post("/login", async (req, res) => {
     if (user) {
       const isWorking = await bcryptjs.compare(password, user.password);
       if (isWorking) {
-        let datos = null;
-        if (user["role"] === "administrador") {
-          datos = await Administradores.findOne({
-            adm_usuario_id: user["_id"],
+        console.log(user["estado"])
+        if (user["estado"] === "inactivo") {
+          res.status(400).json("Usuario inactivo, por favor contacta al administrador");
+        } else {
+          let datos = null;
+          if (user["role"] === "administrador") {
+            datos = await Administradores.findOne({
+              adm_usuario_id: user["_id"],
+            });
+          } else if (user["role"] === "interno") {
+            datos = await Internos.findOne({
+              int_usuario_id: user["_id"],
+            });
+          } else if (user["role"] === "empleado") {
+            datos = await Empleados.findOne({
+              emp_usuario_id: user["_id"],
+            });
+          } else if (user["role"] === "externo") {
+            datos = await Externos.findOne({
+              ext_usuario_id: user["_id"],
+            });
+          }
+          const token = await user.generateToken();
+          res.cookie("jwt", token, {
+            expires: new Date(Date.now() + 86400000),
+            httpOnly: true,
           });
-        } else if (user["role"] === "interno") {
-          datos = await Internos.findOne({
-            int_usuario_id: user["_id"],
-          });
-        } else if (user["role"] === "empleado") {
-          datos = await Empleados.findOne({
-            emp_usuario_id: user["_id"],
-          });
-        } else if (user["role"] === "externo") {
-          datos = await Externos.findOne({
-            ext_usuario_id: user["_id"],
+          res.status(200).json({
+            user_id: datos["_id"],
+            nombres: user["nombres"] + " " + user["apellidos"],
+            role: user["role"],
           });
         }
-        const token = await user.generateToken();
-        res.cookie("jwt", token, {
-          expires: new Date(Date.now() + 86400000),
-          httpOnly: true,
-        });
-        res.status(200).json({
-          //login_id: user["_id"],
-          user_id: datos["_id"],
-          nombres: user["nombres"] + " " + user["apellidos"],
-          role: user["role"],
-        });
       } else {
         res.status(400).send("USUARIO O CONTRASEÑA INCORRECTA");
       }
@@ -176,6 +180,21 @@ app.post("/onOffUsuario", async (req, res) => {
 });
 
 //USUARIOS INTERNOS
+
+app.post("/cargarDetallesServicio", async (req, res) => {
+  const id_servicio = req.body.id_servicio;
+  try {
+    const datos = await Servicios.find({ _id: id_servicio });
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 app.post("/cargarInternos", async (req, res) => {
   try {
     const datos = await Internos.aggregate([
@@ -258,6 +277,74 @@ app.post("/cargarEmpleados", async (req, res) => {
       res.status(400).send("No hay Empleados");
     }
   } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+app.post("/cargarEmpleadosInternos", async (req, res) => {
+  const interno = req.body.id_interno;
+  try {
+    const datos = await Internos.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(interno),
+        },
+      },
+      {
+        $lookup: {
+          from: "serviciosinternos",
+          localField: "_id",
+          foreignField: "si_interno_id",
+          as: "datosServicios",
+        },
+      },
+    ]);
+    let servicios = [];
+    for (let index = 0; index < datos[0]["datosServicios"].length; index++) {
+      servicios.push({
+        id: datos[0]["datosServicios"][index]["si_servicio_id"],
+      });
+    }
+    dt = [];
+    for (let index = 0; index < servicios.length; index++) {
+      respuesta = await Servicios.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(servicios[index].id),
+          },
+        },
+        {
+          $lookup: {
+            from: "empleados",
+            localField: "_id",
+            foreignField: "emp_servicio_id",
+            as: "empleado",
+          },
+        },
+        {
+          $unwind: "$empleado",
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "empleado.emp_usuario_id",
+            foreignField: "_id",
+            as: "datosEmpleado",
+          },
+        },
+      ]);
+      for (let index = 0; index < respuesta.length; index++) {
+        dt.push(respuesta[index]);
+      }
+    }
+
+    if (dt) {
+      res.status(200).json(dt);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    console.log(error);
     res.status(400).send(error);
   }
 });
@@ -529,6 +616,33 @@ app.post("/registrarServicio", async (req, res) => {
   }
 });
 
+app.post("/guardarCambiosServicio", async (req, res) => {
+  try {
+    const id = req.body.id;
+    const costo = req.body.costo;
+    const descripcion = req.body.descripcion;
+    const duracion = req.body.duracion;
+    const filter = { _id: id };
+    const update = {
+      ser_costo: costo,
+      ser_descripcion: descripcion,
+      ser_duracion: duracion,
+    };
+
+    let datos = await Servicios.findOneAndUpdate(filter, update);
+
+    console.log(datos);
+    if (datos) {
+      res.status(200).json(datos);
+    } else {
+      res.status(400).send("No hay servicios");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
 //SERVICIOS INTERNOS ----------------------------------------
 
 app.post("/cargarServiciosInternos", async (req, res) => {
@@ -726,6 +840,14 @@ app.post("/cargarDetallesCita", async (req, res) => {
           as: "datosComentarios",
         },
       },
+      {
+        $lookup: {
+          from: "horarios",
+          localField: "cit_horario_id",
+          foreignField: "_id",
+          as: "datosHorario",
+        },
+      },
     ]);
     console.log(datos);
     if (datos) {
@@ -799,6 +921,112 @@ app.post("/cargarCitas", async (req, res) => {
   }
 });
 
+app.post("/cargarCitasInterno", async (req, res) => {
+  const interno = req.body.id_interno;
+  try {
+    const datos = await Internos.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(interno),
+        },
+      },
+      {
+        $lookup: {
+          from: "serviciosinternos",
+          localField: "_id",
+          foreignField: "si_interno_id",
+          as: "datosServicios",
+        },
+      },
+    ]);
+    let servicios = [];
+    for (let index = 0; index < datos[0]["datosServicios"].length; index++) {
+      servicios.push({
+        id: datos[0]["datosServicios"][index]["si_servicio_id"],
+      });
+    }
+    dt = [];
+    for (let index = 0; index < servicios.length; index++) {
+      respuesta = await Servicios.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(servicios[index].id),
+          },
+        },
+        {
+          $lookup: {
+            from: "citas",
+            localField: "_id",
+            foreignField: "cit_servicio_id",
+            as: "cita",
+          },
+        },
+        {
+          $unwind: "$cita",
+        },
+        {
+          $lookup: {
+            from: "externos",
+            localField: "cita.cit_externo_id",
+            foreignField: "_id",
+            as: "externo",
+          },
+        },
+        {
+          $unwind: "$externo",
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "externo.ext_usuario_id",
+            foreignField: "_id",
+            as: "datosExterno",
+          },
+        },
+        {
+          $lookup: {
+            from: "empleados",
+            localField: "cita.cit_empleado_id",
+            foreignField: "_id",
+            as: "empleado",
+          },
+        },
+        {
+          $unwind: "$empleado",
+        },
+        {
+          $lookup: {
+            from: "usuarios",
+            localField: "empleado.emp_usuario_id",
+            foreignField: "_id",
+            as: "datosEmpleado",
+          },
+        },
+        {
+          $lookup: {
+            from: "servicios",
+            localField: "empleado.emp_servicio_id",
+            foreignField: "_id",
+            as: "datosServicio",
+          },
+        },
+      ]);
+      for (let index = 0; index < respuesta.length; index++) {
+        dt.push(respuesta[index]);
+      }
+    }
+
+    if (dt) {
+      res.status(200).json(dt);
+    } else {
+      res.status(400).send("No hay citas");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
+});
+
 app.post("/cargarCitasExterno", async (req, res) => {
   const externo = req.body.id_externo;
   try {
@@ -864,14 +1092,16 @@ app.post("/registrarCita", async (req, res) => {
   try {
     const externo = req.body.externo;
     const empleado = req.body.empleado;
-    const fecha = req.body.fecha;
+    const servicio = req.body.servicio;
     const horario = req.body.horario;
+    const fecha = req.body.fecha;
 
     const createCita = new Citas({
       cit_externo_id: externo,
       cit_empleado_id: empleado,
-      cit_fecha: fecha,
+      cit_servicio_id: servicio,
       cit_horario_id: horario,
+      cit_fecha: fecha,
       cit_estado: "espera",
       cit_calificacion: "por calificar",
     });

@@ -14,13 +14,26 @@ export default function PanelInternoPage() {
   };
 
   //CITAS -------------------------------------------------------
-  const intCargarCitas = async (event) => {
+
+  const citasTabla = (event) => {
     try {
-      const res = await fetch("/cargarCitas", {
+      //cargarDetallesServicio(event.target.attributes.getNamedItem("idservicio").value);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const cargarCitas = async (event) => {
+    try {
+      const id_interno = user["user"];
+      const res = await fetch("/cargarCitasInterno", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          id_interno,
+        }),
       });
       if (res.status === 400 || !res) {
         window.alert("No hay servicios");
@@ -28,33 +41,41 @@ export default function PanelInternoPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
-        var servicios = "";
+        console.log(response);
+        var citas = "";
         for (let index = 0; index < response.length; index++) {
-          servicios +=
+          citas +=
             '<tr> \
           <th scope="row">' +
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["nombre"] +
+            response[index]["datosEmpleado"][0].nombres +
+            " " +
+            response[index]["datosEmpleado"][0].apellidos +
             "</td> \
-          <td>" +
-            response[index]["costo"] +
-            "</td>";
-          if (response[index]["estado"] === "activo") {
-            servicios +=
-              '<td><button idservicio="' +
-              response[index]["_id"] +
-              '" type="button" className="btn btn-success bloquearServicio">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
-            servicios +=
-              '<td><button idservicio="' +
-              response[index]["_id"] +
-              '" type="button" className="btn btn-danger desbloquearServicio">INACTIVO</button></td>';
-          }
-          servicios += "</tr>";
+            <td>" +
+            response[index]["datosExterno"][0].nombres +
+            " " +
+            response[index]["datosExterno"][0].apellidos +
+            "</td> \
+          <td>$" +
+            response[index]["datosServicio"][0].ser_costo +
+            " " +
+            response[index]["datosServicio"][0].ser_nombre +
+            "</td> \
+            <td class='text-uppercase fw-bold'>" +
+            response[index]["cita"].cit_estado +
+            "</td> \
+            <td><button data-bs-toggle='modal' data-bs-target='#modalDetallesCita' tipoboton='detalles' idcita='" +
+            response[index]["cita"]["_id"] +
+            "' type='button' class='btn btn-info'>VER DETALLES</button></td> \
+            <td><button tipoboton='calificacion' idcalificacion='cal2324' type='button' class='btn btn-warning text-uppercase fw-bold'>" +
+            response[index]["cita"].cit_calificacion +
+            "</button></td>";
+          citas += "</tr>";
         }
-        document.getElementById("tblServicios").innerHTML = servicios;
+        document.getElementById("tblCitas").innerHTML = citas;
       } else {
         window.alert("Error dentro del servidor");
       }
@@ -67,11 +88,15 @@ export default function PanelInternoPage() {
 
   const btnCrearEmpleado = async (event) => {
     try {
-      const res = await fetch("/cargarServicios", {
+      const id_interno = user["user"];
+      const res = await fetch("/cargarServiciosInternos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          id_interno,
+        }),
       });
       if (res.status === 400 || !res) {
         window.alert("No hay servicios");
@@ -79,15 +104,16 @@ export default function PanelInternoPage() {
         window.alert("No hay servicios");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var servicios = "";
         for (let index = 0; index < response.length; index++) {
           servicios +=
             '<option value="' +
-            response[index]["_id"] +
+            response[index]["datoServicio"][0]._id +
             '">' +
-            response[index]["ser_nombre"] +
+            response[index]["datoServicio"][0].ser_nombre +
             " - $" +
-            response[index]["ser_costo"] +
+            response[index]["datoServicio"][0].ser_costo +
             "</option>";
         }
         document.getElementById("servicio").innerHTML = servicios;
@@ -166,20 +192,33 @@ export default function PanelInternoPage() {
     }
   };
 
-  const cargarEmpleados = async (event) => {
+  const empleadosTabla = (event) => {
     try {
-      const res = await fetch("/cargarEmpleados", {
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const cargarEmpleados = async (event) => {
+    //event.preventDefault();
+    try {
+      const id_interno = user["user"];
+      const res = await fetch("/cargarEmpleadosInternos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          id_interno,
+        }),
       });
       if (res.status === 400 || !res) {
-        window.alert("No hay Empleados");
+        window.alert("No hay empleados");
       } else if (res.status === 404) {
-        window.alert("No hay Empleados");
+        window.alert("No hay empleados");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var empleados = "";
         for (let index = 0; index < response.length; index++) {
           empleados +=
@@ -188,28 +227,48 @@ export default function PanelInternoPage() {
             (index + 1) +
             "</th> \
           <td>" +
-            response[index]["nombres"] +
+            response[index]["datosEmpleado"][0].nombres +
             " " +
-            response[index]["apellidos"] +
+            response[index]["datosEmpleado"][0].apellidos +
             "</td> \
           <td>" +
-            response[index]["numero_documento"] +
+            response[index]["datosEmpleado"][0].numero_documento +
             "</td> \
-          <td>" +
-            response[index]["role"] +
-            "</td>";
-          if (response[index]["estado"] === "activo") {
-            empleados +=
-              '<td><button idusuario="' +
-              response[index]["_id"] +
-              '" type="button" class="btn btn-success bloquearUsuario">ACTIVO</button></td>';
-          } else if (response[index]["estado"] === "inactivo") {
-            empleados +=
-              '<td><button idusuario="' +
-              response[index]["_id"] +
-              '" type="button" class="btn btn-danger desbloquearUsuario">INACTIVO</button></td>';
-          }
+            <td>" +
+            response[index]["datosEmpleado"][0].email +
+            '</td> \
+          <td><button tipoboton="detallesEmpleado" data-bs-toggle="modal" data-bs-target="#modalDetallesUsuario" idempleado=' +
+            response[index]["_id"] +
+            ' type="button" class="btn btn-warning">INFORMACION</button></td>';
+
           empleados += "</tr>";
+          empleados +=
+            '<tr><td colspan="5"><div class="accordion" id="accordionExample"><div class="accordion-item"> \
+            <h2 class="accordion-header" id="headingTwo"> \
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"  data-bs-target="#acc_' +
+            (index + 1) +
+            '" aria-expanded="false" aria-controls="acc_' +
+            (index + 1) +
+            '"> \
+                DETALLES DEL SERVICIO \
+              </button> \
+            </h2> \
+            <div id="acc_' +
+            (index + 1) +
+            '" class="accordion-collapse collapse" aria-labelledby="headingTwo"  data-bs-parent="#accordionExample"> \
+              <div class="accordion-body"> \
+                <div><strong>NOMBRE: </strong><span>' +
+            response[index]["ser_nombre"] +
+            "</span></div> \
+                <div><strong>COSTO: </strong><span>$" +
+            response[index]["ser_costo"] +
+            "</span></div> \
+                <div><strong>DURACION: </strong><span>" +
+            response[index]["ser_duracion"] +
+            " Minutos</span></div> \
+              </div> \
+            </div> \
+          </div></div></td><tr>";
         }
         document.getElementById("tblEmpleados").innerHTML = empleados;
       } else {
@@ -219,25 +278,56 @@ export default function PanelInternoPage() {
       console.error(error);
     }
   };
-
   //SERVICIOS
 
   const [servicio, setServicio] = useState({
+    id: "",
     nombre: "",
     costo: "",
     descripcion: "",
+    duracion: "",
   });
 
   const serviciosTabla = (event) => {
     try {
-      var tipoBoton = event.target.attributes.getNamedItem("tipoboton").value;
-      if (tipoBoton === "configurar") {
-        //cargarConfigurarServicio(
-        //event.target.attributes.getNamedItem("idservicio").value
-        //);
-      }
+      cargarDetallesServicio(
+        event.target.attributes.getNamedItem("idservicio").value
+      );
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const cargarDetallesServicio = async (servicio) => {
+    const id_servicio = servicio;
+    try {
+      const res = await fetch("/cargarDetallesServicio", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_servicio,
+        }),
+      });
+      if (res.status === 400 || !res) {
+        window.alert("No hay detalles");
+      } else if (res.status === 404) {
+        window.alert("No hay detalles");
+      } else if (res.status === 200) {
+        const response = await res.json();
+        setServicio({
+          id: response[0]._id,
+          nombre: response[0].ser_nombre,
+          costo: response[0].ser_costo,
+          descripcion: response[0].ser_descripcion,
+          duracion: response[0].ser_duracion,
+        });
+      } else {
+        window.alert("Error dentro del servidor");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -288,7 +378,7 @@ export default function PanelInternoPage() {
           servicios +=
             '<td scope="row"><button idservicio="' +
             response[index]["datoServicio"][0]._id +
-            '" type="button" class="btn btn-info">VER DETALLES</button</td>';
+            '" type="button" data-bs-toggle="modal" data-bs-target="#modalConfigurarServicio" class="btn btn-info">VER DETALLES</button</td>';
           servicios += "</tr>";
         }
         document.getElementById("tblServicios").innerHTML = servicios;
@@ -300,21 +390,66 @@ export default function PanelInternoPage() {
     }
   };
 
+  const guardarCambiosServicio = async (event) => {
+    event.preventDefault();
+    const { id, costo, descripcion, duracion } = servicio;
+    if (costo === "" || duracion === "") {
+      alert("Por favor rellene los campos costo y duracion del servicio");
+    } else {
+      try {
+        const res = await fetch("/guardarCambiosServicio", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id,
+            costo,
+            descripcion,
+            duracion,
+          }),
+        });
+        if (res.status === 400 || !res) {
+          window.alert("Error al guardar");
+        } else {
+          window.alert("Datos guardados con exito");
+          cargarServicios();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
   return (
     <>
       <div>
         <nav>
           <div className="nav nav-tabs" id="nav-tab" role="tablist">
             <button
-              onClick={intCargarCitas}
               className="nav-link active"
+              id="nav-reportes-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#nav-reportes"
+              type="button"
+              role="tab"
+              aria-controls="nav-reportes"
+              aria-selected="true"
+            >
+              REPORTES -
+              <FontAwesomeIcon icon="clipboard-list" />
+            </button>
+
+            <button
+              onClick={cargarCitas}
+              className="nav-link"
               id="nav-citas-tab"
               data-bs-toggle="tab"
               data-bs-target="#nav-citas"
               type="button"
               role="tab"
               aria-controls="nav-citas"
-              aria-selected="true"
+              aria-selected="false"
             >
               CITAS -
               <FontAwesomeIcon icon="address-book" />
@@ -347,25 +482,20 @@ export default function PanelInternoPage() {
               SERVICIOS -
               <FontAwesomeIcon icon="calendar-check" />
             </button>
-
-            <button
-              className="nav-link"
-              id="nav-reportes-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#nav-reportes"
-              type="button"
-              role="tab"
-              aria-controls="nav-reportes"
-              aria-selected="false"
-            >
-              REPORTES -
-              <FontAwesomeIcon icon="clipboard-list" />
-            </button>
           </div>
         </nav>
         <div className="tab-content" id="nav-tabContent">
           <div
             className="tab-pane fade show active"
+            id="nav-reportes"
+            role="tabpanel"
+            aria-labelledby="nav-reportes-tab"
+          >
+            <h1>REPORTES</h1>
+          </div>
+
+          <div
+            className="tab-pane fade"
             id="nav-citas"
             role="tabpanel"
             aria-labelledby="nav-citas-tab"
@@ -375,21 +505,15 @@ export default function PanelInternoPage() {
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">NOMBRES</th>
-                  <th scope="col">CEDULA</th>
-                  <th scope="col">ROLE</th>
-                  <th scope="col">ON / OFF</th>
+                  <th scope="col">EMPLEADO</th>
+                  <th scope="col">CLIENTE</th>
+                  <th scope="col">SERVICIO</th>
+                  <th scope="col">ESTADO</th>
+                  <th scope="col">DETALLES - COMENTARIOS</th>
+                  <th scope="col">CALIFICACION</th>
                 </tr>
               </thead>
-              <tbody id="tblCitas">
-                <tr>
-                  <th scope="row">1</th>
-                  <td>Mark</td>
-                  <td>Otto</td>
-                  <td>@mdo</td>
-                  <td>@mdo</td>
-                </tr>
-              </tbody>
+              <tbody onClick={citasTabla} id="tblCitas"></tbody>
             </table>
             <hr></hr>
           </div>
@@ -406,19 +530,11 @@ export default function PanelInternoPage() {
                   <th scope="col">#</th>
                   <th scope="col">NOMBRES</th>
                   <th scope="col">CEDULA</th>
-                  <th scope="col">ROLE</th>
-                  <th scope="col">ON / OFF</th>
+                  <th scope="col">EMAIL</th>
+                  <th scope="col">DETALLES USUARIO</th>
                 </tr>
               </thead>
-              <tbody id="tblEmpleados">
-                <tr>
-                  <th scope="row">1</th>
-                  <td>Mark</td>
-                  <td>Otto</td>
-                  <td>@mdo</td>
-                  <td>@mdo</td>
-                </tr>
-              </tbody>
+              <tbody onClick={empleadosTabla} id="tblEmpleados"></tbody>
             </table>
             <hr></hr>
             <button
@@ -458,17 +574,9 @@ export default function PanelInternoPage() {
             </table>
             <hr></hr>
           </div>
-
-          <div
-            className="tab-pane fade"
-            id="nav-reportes"
-            role="tabpanel"
-            aria-labelledby="nav-reportes-tab"
-          >
-            <h1>REPORTES</h1>
-          </div>
         </div>
       </div>
+
       <form onSubmit={intCrearEmpleado} method="POST">
         <div
           className="modal fade"
@@ -644,6 +752,110 @@ export default function PanelInternoPage() {
           </div>
         </div>
       </form>
+
+      <div
+        className="modal fade"
+        id="modalConfigurarServicio"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header modalHead">
+              <h5 className="modal-title" id="exampleModalLabel">
+                CONFIGURAR SERVICIO
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="serNombre"
+                      name="nombre"
+                      value={servicio.nombre}
+                      onChange={handleInput}
+                      type="text"
+                      className="form-control"
+                      placeholder="Nombre"
+                      disabled
+                      maxLength="150"
+                    />
+                  </div>
+                  <div className="col-4">
+                    <input
+                      id="serCosto"
+                      name="costo"
+                      value={servicio.costo}
+                      onChange={handleInput}
+                      type="number"
+                      className="form-control"
+                      placeholder="Costo"
+                      min="10000"
+                      max="1000000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="row">
+                  <div className="col">
+                    <input
+                      id="serDescripcion"
+                      name="descripcion"
+                      value={servicio.descripcion}
+                      onChange={handleInput}
+                      type="text"
+                      className="form-control"
+                      placeholder="Descripcion"
+                      maxLength="150"
+                    />
+                  </div>
+                  <div className="col-2">
+                    <input
+                      id="serDuracion"
+                      name="duracion"
+                      value={servicio.duracion}
+                      onChange={handleInput}
+                      type="number"
+                      className="form-control"
+                      placeholder="Duracion"
+                      min="30"
+                      max="60"
+                    />
+                  </div>
+                  <div className="col-4">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="MINUTOS"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer modalFoot" align="center">
+              <div id="msgRegistro"></div>
+              <button
+                onClick={guardarCambiosServicio}
+                id="regRegistrar"
+                type="button"
+                className="btn btn-primary"
+              >
+                GUARDAR CAMBIOS
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

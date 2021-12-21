@@ -40,6 +40,7 @@ export default function PanelAdministradorPage() {
         window.alert("No hay detalles");
       } else if (res.status === 200) {
         const response = await res.json();
+        console.log(response);
         var comentarios = "";
         for (
           let index = 0;
@@ -67,6 +68,8 @@ export default function PanelAdministradorPage() {
           response[0]["datosServicio"][0].ser_nombre;
         document.getElementById("fecha").value =
           response[0].cit_fecha.substring(0, 10);
+        document.getElementById("hora").value =
+          response[0]["datosHorario"][0].hor_hora;
       } else {
         window.alert("Error dentro del servidor");
       }
@@ -106,7 +109,9 @@ export default function PanelAdministradorPage() {
             " " +
             response[index]["datosExterno"][0].apellidos +
             "</td> \
-          <td>$" + response[index]["datosServicio"][0].ser_costo + " " +
+          <td>$" +
+            response[index]["datosServicio"][0].ser_costo +
+            " " +
             response[index]["datosServicio"][0].ser_nombre +
             "</td> \
             <td class='text-uppercase fw-bold'>" +
@@ -490,6 +495,14 @@ export default function PanelAdministradorPage() {
             window.alert("Usuario en uso");
           } else {
             window.alert("Registrado con exito");
+            document.getElementById("intNombres").value = "";
+            document.getElementById("intApellidos").value = "";
+            document.getElementById("intNumero_documento").value = "";
+            document.getElementById("intTelefono").value = "";
+            document.getElementById("intDireccion").value = "";
+            document.getElementById("intEmail").value = "";
+            document.getElementById("intPassword1").value = "";
+            document.getElementById("intPassword2").value = "";
             cargarInternos();
           }
         } catch (error) {
@@ -627,6 +640,7 @@ export default function PanelAdministradorPage() {
           window.alert("Ocurrió un error");
         } else {
           window.alert("Registrado con exito");
+          document.getElementById("serNombre").value = "";
           cargarServicios();
         }
       } catch (error) {
@@ -1064,6 +1078,7 @@ export default function PanelAdministradorPage() {
                   <div className="row">
                     <div className="col">
                       <input
+                        id="intNombres"
                         name="nombres"
                         value={interno.nombres}
                         onChange={handleInput}
@@ -1076,6 +1091,7 @@ export default function PanelAdministradorPage() {
                     </div>
                     <div className="col">
                       <input
+                        id="intApellidos"
                         name="apellidos"
                         value={interno.apellidos}
                         onChange={handleInput}
@@ -1099,6 +1115,7 @@ export default function PanelAdministradorPage() {
 
                     <div className="col">
                       <input
+                        id="intNumero_documento"
                         name="numero_documento"
                         value={interno.numero_documento}
                         onChange={handleInput}
@@ -1115,6 +1132,7 @@ export default function PanelAdministradorPage() {
                   <div className="row">
                     <div className="col">
                       <input
+                        id="intEmail"
                         name="email"
                         value={interno.email}
                         onChange={handleInput}
@@ -1136,6 +1154,7 @@ export default function PanelAdministradorPage() {
                   <div className="row">
                     <div className="col">
                       <input
+                        id="intTelefono"
                         name="telefono"
                         value={interno.telefono}
                         onChange={handleInput}
@@ -1146,6 +1165,7 @@ export default function PanelAdministradorPage() {
                     </div>
                     <div className="col">
                       <input
+                        id="intDireccion"
                         name="direccion"
                         value={interno.direccion}
                         onChange={handleInput}
@@ -1162,6 +1182,7 @@ export default function PanelAdministradorPage() {
                   <div className="row">
                     <div className="col">
                       <input
+                        id="intPassword1"
                         name="password1"
                         value={interno.password1}
                         onChange={handleInput}
@@ -1173,6 +1194,7 @@ export default function PanelAdministradorPage() {
                     </div>
                     <div className="col">
                       <input
+                        id="intPassword2"
                         name="password2"
                         value={interno.password2}
                         onChange={handleInput}
@@ -1228,6 +1250,7 @@ export default function PanelAdministradorPage() {
                   <div className="row">
                     <div className="col">
                       <input
+                        id="serNombre"
                         name="nombre"
                         value={servicio.nombre}
                         onChange={handleInput}
@@ -1421,7 +1444,6 @@ export default function PanelAdministradorPage() {
                   Comentarios generados
                 </small>
               </div>
-
             </div>
           </div>
         </div>
